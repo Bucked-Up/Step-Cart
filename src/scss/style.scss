@@ -1,0 +1,19 @@
+@import "./reset";
+@import "./loading-screen";
+
+.no-scroll {
+  overflow: hidden;
+}
+
+@mixin scrollBar() {
+  &::-webkit-scrollbar {
+    width: 0.25rem;
+    &-track {
+      border-radius: 0.5rem;
+    }
+    &-thumb {
+      background: #0038ff;
+      border-radius: 0.5rem;
+    }
+  }
+}
