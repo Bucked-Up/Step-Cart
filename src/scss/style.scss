@@ -17,3 +17,297 @@
     }
   }
 }
+
+@mixin defaultButton() {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 100%;
+  padding: 15px;
+  width: 100%;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+}
+
+.cart {
+  // background-color: red;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  right: 0;
+  height: 100dvh;
+  &,
+  * {
+    font-family: Poppins;
+  }
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  flex-direction: column;
+  @media (max-width: 500px) {
+    max-width: none;
+  }
+  img {
+    width: 100%;
+  }
+  &__steps {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background-color: white;
+    display: none;
+    flex-direction: column;
+    &.active{
+      display: flex;
+    }
+    &__head {
+      background-color: #171820;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      svg {
+        fill: white;
+        width: 100%;
+        max-width: 22px;
+        display: block;
+      }
+      button {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        &[step-back] {
+          display: none;
+          &.active {
+            display: block;
+          }
+        }
+      }
+      div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+    }
+    &__step {
+      display: none;
+      &.active {
+        display: flex;
+      }
+      flex-direction: column;
+      padding: 0 20px 20px 20px;
+      flex: 1;
+      img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+      }
+      &__image-wrapper {
+        width: calc(100% + 40px);
+        margin: auto;
+        margin-top: 0;
+        margin-left: -20px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+      &__title {
+        font-size: 16px;
+        font-weight: 900;
+        line-height: 100%;
+        margin-bottom: 4px;
+      }
+      &__sub-title {
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 100%;
+        margin-bottom: 8px;
+      }
+      &__color-image-selectors {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        input {
+          display: none;
+        }
+        label {
+          width: 100%;
+          max-width: 48px;
+          &:has(img){
+            max-width: 68px;
+          }
+          border: 2px solid #d9d9d9;
+          border-radius: 50%;
+          overflow: hidden;
+          cursor: pointer;
+          aspect-ratio: 1;
+          .color-selector {
+            width: 100%;
+            height: 100%;
+            display: block;
+            position: relative;
+            span {
+              position: absolute;
+              right: 50%;
+              rotate: -45deg;
+              top: 0;
+              transform-origin: right;
+              width: 100%;
+              height: 100%;
+              z-index: 1;
+            }
+          }
+          &:has(input:checked) {
+            border-color: red;
+          }
+          &:has(input:disabled) {
+            cursor: not-allowed;
+            position: relative;
+            span {
+              filter: saturate(0);
+            }
+            &:before {
+              content: "";
+              width: 100%;
+              height: 2px;
+              background-color: red;
+              position: absolute;
+              top: 50%;
+              left: 0;
+              z-index: 2;
+              transform: rotate(45deg) translateY(-50%);
+            }
+            &:after {
+              content: "";
+              width: 100%;
+              height: 2px;
+              background-color: red;
+              position: absolute;
+              top: 50%;
+              left: 0;
+              z-index: 2;
+              transform: rotate(-45deg) translateY(-50%);
+            }
+          }
+        }
+      }
+      button {
+        @include defaultButton();
+        margin-top: auto;
+        background-color: red;
+        color: white;
+        &:hover {
+          background-color: #0047ff;
+        }
+      }
+    }
+  }
+  &__head {
+    background-color: #171820;
+    color: white;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    div {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      svg {
+        width: 100%;
+        max-width: 22px;
+        path {
+          fill: white;
+        }
+      }
+    }
+    button {
+      padding: 0;
+      border: none;
+      background: none;
+      width: 100%;
+      max-width: 26px;
+      cursor: pointer;
+      svg {
+        fill: white;
+        width: 100%;
+        display: block;
+      }
+    }
+  }
+  &__products {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 20px;
+  }
+  &__product {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #b3b3b3;
+    &__image {
+      width: 100%;
+      max-width: 100px;
+    }
+    &__texts {
+      width: 100%;
+      font-size: 14px;
+      line-height: 100%;
+    }
+    &__name {
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    &__old-price {
+      color: #ff0d00;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 100%;
+      text-decoration-line: line-through;
+    }
+    &__new-price {
+      color: #0cb23b;
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 100%;
+    }
+  }
+  &__total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    &__total {
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 100%;
+    }
+    &__value {
+      font-size: 44px;
+      font-weight: 900;
+      line-height: 100%;
+    }
+  }
+  &__footer {
+    margin-top: auto;
+    padding: 0 20px 20px 20px;
+    button {
+      @include defaultButton();
+      color: #fff;
+      background-color: #0047ff;
+      &:hover {
+        background-color: red;
+      }
+    }
+  }
+}
