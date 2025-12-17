@@ -14,7 +14,7 @@ const fetchProducts = async ({ country, products }) => {
       if (response.status === 404) throw new Error(`Product ${id} Not Found.`);
       if (response.status == 500 || response.status == 400) throw new Error("Sorry, there was a problem.");
       const data = await response.json();
-      if (product.selector) data.product.selector = product.selector;
+      data.product.configs = product;
       return data;
     } catch (error) {
       return Promise.reject(error);

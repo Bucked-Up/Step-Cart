@@ -5,9 +5,9 @@ const createStaticProduct = (product) => {
   image.src = product.image;
   image.alt = product.name;
   name.innerHTML = product.name;
-  desc.innerHTML = "test";
+  desc.innerHTML = product.configs.desc;
   oldPrice.innerHTML = product.price;
-  newPrice.innerHTML = "TEST";
+  newPrice.innerHTML = product.configs.newPrice.value;
   return card;
 };
 

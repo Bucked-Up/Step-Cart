@@ -86,11 +86,14 @@ const createImageColorSelector = ({ product, image, subTitle }) => {
       input.checked = true;
     }
     label.appendChild(input);
-    if (product.selector === "images") {
+    if (product.configs.selector === "images") {
       const selectorImage = document.createElement("img");
+      const valueName = document.createElement("span")
+      valueName.innerHTML = value.name
       selectorImage.src = value.images[0];
       selectorImage.alt = `${product.options[0].name}-${value.name}`;
       label.appendChild(selectorImage);
+      label.appendChild(valueName);
     } else {
       const [primary, secondary] = getColors(value.name);
       const selectorColor = document.createElement("span");
