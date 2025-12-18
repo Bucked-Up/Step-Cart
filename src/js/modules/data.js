@@ -1,6 +1,7 @@
 let apiProducts = [];
 let products = [];
 let globalQuantity = 0;
+let totalValue = 0;
 const setApiProducts = (products) => {
   apiProducts = products;
 };
@@ -22,5 +23,10 @@ const addRegularProduct = ({ product, choice, replace }) => {
   }
 };
 const getProducts = () => products;
+const getTotalValue = () => totalValue;
+const setTotalValue = (value) => {
+  totalValue = value;
+  document.querySelector("[cart-total]").innerHTML = `$${value.toFixed(2)}`;
+};
 
-export { getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct };
+export { getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, getTotalValue, setTotalValue };

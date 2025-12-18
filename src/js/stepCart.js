@@ -12,8 +12,8 @@ const stepCart = async ({ products }) => {
     console.log(apiData);
     setApiProducts(apiData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
-    const { productsWrapper, stepsWrapper, stepsText, stepsBack } = createCart();
-    createProducts({ wrapper: productsWrapper, stepsWrapper, stepsText, stepsBack });
+    const { productsWrapper, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart();
+    createProducts({ wrapper: productsWrapper, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity });
     toggleLoading();
   } catch (e) {
     console.error(e);
