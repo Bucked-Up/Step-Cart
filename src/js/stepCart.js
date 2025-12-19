@@ -56,7 +56,7 @@ const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
         createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity });
         if (bump?.product) createProducts({ cartQuantity, isBump: true });
         cartWrapper.classList.add("active");
-        document.body.overflow = "hidden";
+        document.body.style.overflow = "hidden";
       });
     });
     toggleLoading();

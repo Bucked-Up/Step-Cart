@@ -12,10 +12,8 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
   let currentStep = 0;
   products.forEach((product) => {
     if (!isBump) setGlobalQuantity(getGlobalQuantity() + (product.configs.quantity || 1));
-    console.log(product.configs);
     if (product.configs.variant) {
       const value = product.options[0].values.find((value) => value.id == product.configs.variant);
-      console.log(value)
       addRegularProduct({product, choice: `${product.options[0].id}-${value.id}`})
       product.image = value.images[0]
       wrapper.appendChild(createStaticProduct({ product, isBump }));
