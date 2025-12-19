@@ -36,7 +36,7 @@ const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
         getBumpWrapper()
           .querySelectorAll(".cart__product")
           .forEach((el) => el.remove());
-        if (buttonOptions[button.id]) {
+        if (buttonOptions && buttonOptions[button.id]) {
           const products = buttonOptions[button.id].products;
           const data = apiData.filter((el) => products.find((toFind) => toFind.id == el.id));
           data.forEach((product) => (product.configs = products.find((el) => el.id == product.id)));
