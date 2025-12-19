@@ -1,9 +1,10 @@
 import { addStaticProduct, getApiProducts, getBumpProduct, getBumpWrapper, getGlobalQuantity, getProductsWrapper, setGlobalQuantity } from "../data.js";
+import createRegularProduct from "./createRegularProduct.js";
 import createStaticProduct from "./createStaticProduct.js";
 import createStep from "./createStep.js";
 import isStatic from "./isStatic.js";
 
-const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity, isBump }) => {
+const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump }) => {
   const wrapper = isBump ? getBumpWrapper() : getProductsWrapper();
   const products = isBump ? [getBumpProduct()] : getApiProducts();
   console.log(products);
@@ -13,13 +14,15 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQ
   products.forEach((product) => {
     if (!isBump) setGlobalQuantity(getGlobalQuantity() + (product.configs.quantity || 1));
     if (isStatic(product)) {
-      addStaticProduct({ product, quantity: product.configs.quantity || 1 });
+      if (!isBump) addStaticProduct({ product, quantity: product.configs.quantity || 1 });
       const affect = product.configs.newPrice?.affect;
       if (affect) {
         const rest = product.configs.quantity - affect;
         wrapper.appendChild(createStaticProduct({ product, isDiscounted: false, prodQuantity: rest }));
         wrapper.appendChild(createStaticProduct({ product, prodQuantity: product.configs.quantity - rest }));
       } else wrapper.appendChild(createStaticProduct({ product, isBump }));
+    } else if (isBump) {
+      wrapper.appendChild(createRegularProduct({ product, isBump }));
     } else {
       const [step, button] = createStep({ product, stepsWrapper });
       steps.push(step);

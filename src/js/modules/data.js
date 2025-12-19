@@ -42,5 +42,7 @@ const setTotalValue = (value) => {
 };
 const setBumpProduct = (product) => (bumpProduct = product);
 const getBumpProduct = () => bumpProduct;
-
+// setInterval(() => {
+//   console.log(JSON.stringify(products));
+// },1000);
 export { removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, getTotalValue, setTotalValue, setBumpProduct, getBumpProduct };

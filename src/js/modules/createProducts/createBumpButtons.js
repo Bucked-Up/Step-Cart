@@ -18,7 +18,6 @@ const createBumpButtons = ({ product, card }) => {
     removeButton.style = "";
     getProductsWrapper().appendChild(card);
     setTotalValue(getTotalValue() + Number(product.configs.newPrice.value.split("$")[1]));
-    // addStaticProduct({ product });
     setGlobalQuantity(getGlobalQuantity() + 1);
   });
   removeButton.addEventListener("click", () => {
