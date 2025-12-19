@@ -1,4 +1,4 @@
-import { addStaticProduct, getApiProducts, getBumpProduct, getBumpWrapper, getGlobalQuantity, getProductsWrapper, setGlobalQuantity } from "../data.js";
+import { addRegularProduct, addStaticProduct, getApiProducts, getBumpProduct, getBumpWrapper, getGlobalQuantity, getProductsWrapper, setGlobalQuantity } from "../data.js";
 import createRegularProduct from "./createRegularProduct.js";
 import createStaticProduct from "./createStaticProduct.js";
 import createStep from "./createStep.js";
@@ -12,6 +12,15 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
   let currentStep = 0;
   products.forEach((product) => {
     if (!isBump) setGlobalQuantity(getGlobalQuantity() + (product.configs.quantity || 1));
+    console.log(product.configs);
+    if (product.configs.variant) {
+      const value = product.options[0].values.find((value) => value.id == product.configs.variant);
+      console.log(value)
+      addRegularProduct({product, choice: `${product.options[0].id}-${value.id}`})
+      product.image = value.images[0]
+      wrapper.appendChild(createStaticProduct({ product, isBump }));
+      return;
+    }
     if (isStatic(product)) {
       if (!isBump) addStaticProduct({ product, quantity: product.configs.quantity || 1 });
       const affect = product.configs.newPrice?.affect;
