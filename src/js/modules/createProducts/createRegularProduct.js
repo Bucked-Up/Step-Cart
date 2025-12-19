@@ -23,7 +23,7 @@ const createRegularProduct = ({ product, isBump }) => {
       image.alt = value.name;
       currentValue = value;
       if (isAdded) {
-        addRegularProduct({ product, choice: `${product.id}-${product.options[0].id}-${currentValue.id}`, replace: true });
+        addRegularProduct({ product, choice: `${product.options[0].id}-${currentValue.id}`, replace: true });
       }
     });
   });
@@ -32,7 +32,7 @@ const createRegularProduct = ({ product, isBump }) => {
     const [addButton, removeButton] = createBumpButtons({ product, card });
     addButton.addEventListener("click", () => {
       isAdded = true;
-      addRegularProduct({ product, choice: `${product.id}-${product.options[0].id}-${currentValue.id}`, replace: true });
+      addRegularProduct({ product, choice: `${product.options[0].id}-${currentValue.id}`, replace: true });
     });
     removeButton.addEventListener("click", () => {
       isAdded = false;

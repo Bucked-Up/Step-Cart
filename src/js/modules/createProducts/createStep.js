@@ -53,8 +53,8 @@ const createStep = ({ product, stepsWrapper }) => {
   if (isDependent(product)) {
     const values = product.options[0].values;
     firstAvailableValue = values.find((value) => Object.keys(product.stock).some((key) => key.includes(value.id) && product.stock[key] > 0));
-    const secondaryValue = product.options[1].values.find((value) => Object.keys(product.stock).some((key) => key.includes(value.id) && key.includes(firstAvailableValue.id) && product.stock[key] > 0));
-    addRegularProduct({ product, choice: `${product.options[0].id}-${firstAvailableValue.id}/${product.options[1].id}-${secondaryValue.id}`, replace: true });
+    // const secondaryValue = product.options[1].values.find((value) => Object.keys(product.stock).some((key) => key.includes(value.id) && key.includes(firstAvailableValue.id) && product.stock[key] > 0));
+    // addRegularProduct({ product, choice: `${product.options[0].id}-${firstAvailableValue.id}/${product.options[1].id}-${secondaryValue.id}`, replace: true });
     currentPrimaryValue = firstAvailableValue;
   } else {
     firstAvailableValue = product.options[0].values.find((value) => value.in_stock);
@@ -147,7 +147,7 @@ const createStep = ({ product, stepsWrapper }) => {
           setNewPrice(newPrice, value.price);
           selectorsWrapper.removeAttribute("invalid");
           selectorsWrapper.classList.remove("invalid");
-          addRegularProduct({ product, choice: `${product.options[0].id}-${inputs.find((input) => input.checked).value}/${product.options[1].id}-${input.value}`, replace: true });
+          addRegularProduct({ product, choice: `${product.options[0].id}-${primaryInputs.find((input) => input.checked).value}/${product.options[1].id}-${input.value}`, replace: true });
           cardImage.src = currentPrimaryValue.images[0];
           cardImage.alt = currentPrimaryValue.name;
           name.innerHTML = product.name;

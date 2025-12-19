@@ -7,15 +7,22 @@ import toggleLoading from "./modules/toggleLoading.js";
 
 const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
   try {
+    window.addEventListener("pageshow", function (event) {
+      if (event.persisted) {
+        document.body.classList.remove("loading");
+        document.body.style = "";
+      }
+    });
     toggleLoading();
     const [apiData, bumpData] = await Promise.all([fetchProducts({ products }), fetchProducts({ bump: bump?.product })]);
     const buttons = document.querySelectorAll("[cart-button]");
     setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
-    const { cart, closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart();
+    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart();
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
       el.addEventListener("click", () => {
         cartWrapper.classList.remove("active");
+        document.body.style = "";
       })
     );
     buttons.forEach((button) => {
@@ -49,6 +56,7 @@ const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
         createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity });
         if (bump?.product) createProducts({ cartQuantity, isBump: true });
         cartWrapper.classList.add("active");
+        document.body.overflow = "hidden";
       });
     });
     toggleLoading();
