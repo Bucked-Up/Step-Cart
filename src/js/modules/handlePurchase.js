@@ -1,6 +1,7 @@
 import { getCouponCode, getProducts } from "./data.js";
 import toggleLoading from "./toggleLoading.js";
 import getCookie from "./track/getCookie.js";
+import sendVibeLead from "./track/sendVibeLead.js";
 
 const handlePurchase = () => {
   toggleLoading();
@@ -22,6 +23,7 @@ const handlePurchase = () => {
       string = string + `&products[${i}][options][${option}]=${value}`;
     });
   });
+  sendVibeLead();
   window.location.href = `https://funnels.buckedup.com/cart/add?${urlParams}${string}&clear=true`;
 };
 
