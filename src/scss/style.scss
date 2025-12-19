@@ -30,13 +30,34 @@
   cursor: pointer;
 }
 
-.cart {
-  // background-color: red;
+.cart-wrapper{
   position: fixed;
   z-index: 1000;
   top: 0;
   right: 0;
+  width: 100%;
   height: 100dvh;
+  display: none;
+  &.active{
+    display: block;
+  }
+}
+.cart-backdrop{
+  position: absolute;
+  top:0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  animation: fadeIn 0.2s linear;
+}
+.cart {
+  animation: grow 0.2s ease-in-out;
+  position:absolute;
+  top:0;
+  right: 0;
+  height: 100%;
+  background-color: white;
   &,
   * {
     font-family: Poppins;
@@ -517,6 +538,24 @@
     transform: translateX(0.3125rem);
   }
   100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: translateX(100%);
+  }
+  to {
     transform: translateX(0);
   }
 }

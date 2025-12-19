@@ -5,7 +5,18 @@ let totalValue = 0;
 let bumpProduct;
 let productsWrapper;
 let bumpWrapper;
+let couponCode;
+let bumpCode;
 
+const reset = () => {
+  products = [];
+  globalQuantity = 0;
+  totalValue = 0;
+};
+const setCouponCode = (code) => (couponCode = code);
+const getCouponCode = () => couponCode;
+const setBumpCoupon = (code) => (bumpCode = code);
+const getBumpCoupon = () => bumpCode;
 const setProductsWrapper = (wrapper) => (productsWrapper = wrapper);
 const setBumpWrapper = (wrapper) => (bumpWrapper = wrapper);
 const getProductsWrapper = () => productsWrapper;
@@ -42,7 +53,4 @@ const setTotalValue = (value) => {
 };
 const setBumpProduct = (product) => (bumpProduct = product);
 const getBumpProduct = () => bumpProduct;
-// setInterval(() => {
-//   console.log(JSON.stringify(products));
-// },1000);
-export { removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, getTotalValue, setTotalValue, setBumpProduct, getBumpProduct };
+export { setBumpCoupon, getBumpCoupon, setCouponCode, getCouponCode, reset, removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, getTotalValue, setTotalValue, setBumpProduct, getBumpProduct };

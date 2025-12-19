@@ -7,7 +7,6 @@ import isStatic from "./isStatic.js";
 const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump }) => {
   const wrapper = isBump ? getBumpWrapper() : getProductsWrapper();
   const products = isBump ? [getBumpProduct()] : getApiProducts();
-  console.log(products);
   const steps = [];
   const stepButtons = [];
   let currentStep = 0;

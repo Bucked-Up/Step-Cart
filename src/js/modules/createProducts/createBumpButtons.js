@@ -1,4 +1,4 @@
-import { getBumpWrapper, getGlobalQuantity, getProductsWrapper, getTotalValue, setGlobalQuantity, setTotalValue } from "../data.js";
+import { getBumpCoupon, getBumpWrapper, getCouponCode, getGlobalQuantity, getProductsWrapper, getTotalValue, setCouponCode, setGlobalQuantity, setTotalValue } from "../data.js";
 
 const createBumpButtons = ({ product, card }) => {
   const addButton = document.createElement("button");
@@ -13,7 +13,9 @@ const createBumpButtons = ({ product, card }) => {
   removeButton.classList.add("remove-button");
   removeButton.style.display = "none";
   card.appendChild(removeButton);
+  let prevCoupon = getCouponCode();
   addButton.addEventListener("click", () => {
+    setCouponCode(getBumpCoupon());
     addButton.style.display = "none";
     removeButton.style = "";
     getProductsWrapper().appendChild(card);
@@ -21,6 +23,7 @@ const createBumpButtons = ({ product, card }) => {
     setGlobalQuantity(getGlobalQuantity() + 1);
   });
   removeButton.addEventListener("click", () => {
+    setCouponCode(prevCoupon);
     removeButton.style.display = "none";
     addButton.style = "";
     getBumpWrapper().appendChild(card);
