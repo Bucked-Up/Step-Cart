@@ -1,7 +1,7 @@
 import sendViewedProducts from "./track/sendViewedProducts.js";
 
-const fetchProducts = async ({ country, products }) => {
-  if (!products) return;
+const fetchProducts = async ({ country, products, bump }) => {
+  if (!products && !bump) return;
   const fetchApi = async (product) => {
     // let url = `https://funnels.buckedup.com/product/json/detail?product_id=${id}`;
     let url = `https://webhook-processor-production-4aa3.up.railway.app/webhook/dev?product_id=${product.id}`;
@@ -20,6 +20,15 @@ const fetchProducts = async ({ country, products }) => {
       return Promise.reject(error);
     }
   };
+  if (bump) {
+    const data = await fetchApi(bump);
+    if (Object.keys(data.product.stock).every((key) => data.product.stock[key] <= 0)) {
+      console.error(`${item.product.name} Out of stock.`);
+      return;
+    }
+    data.product.configs.isBump = true;
+    return data.product;
+  }
   const data = await Promise.all(products.map(fetchApi));
   sendViewedProducts(data);
   data.forEach((item) => {

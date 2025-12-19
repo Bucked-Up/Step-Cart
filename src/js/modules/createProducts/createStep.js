@@ -1,10 +1,10 @@
-import { addRegularProduct, getTotalValue, setTotalValue } from "../data.js";
+import { addRegularProduct, getProductsWrapper, getTotalValue, setTotalValue } from "../data.js";
 import createImageColorSelector from "./createImageColorSelector.js";
 import createProductCard from "./createProductCard.js";
 import createSizeSelectors from "./createSizeSelectors.js";
 import isDependent from "./isDepentent.js";
 
-const createStep = ({ product, stepsWrapper, wrapper }) => {
+const createStep = ({ product, stepsWrapper }) => {
   const dependentOutOfStock = (value1, value2) => product.stock[Object.keys(product.stock).find((key) => key.includes(value1) && key.includes(value2))] <= 0;
   const setOldPrice = (el, price) => (el.innerHTML = `$${(Number(product.price.split("$")[1]) + Number(price.split("$")[1])).toFixed(2)}`);
   const setNewPrice = (el, price) => {
@@ -25,7 +25,7 @@ const createStep = ({ product, stepsWrapper, wrapper }) => {
   const subTitle = document.createElement("p");
   const button = document.createElement("button");
   const { card, image: cardImage, name, desc, oldPrice, newPrice } = createProductCard(product);
-  wrapper.appendChild(card);
+  getProductsWrapper().appendChild(card);
 
   step.classList.add("cart__steps__step");
   imageWrapper.classList.add("cart__steps__step__image-wrapper");
