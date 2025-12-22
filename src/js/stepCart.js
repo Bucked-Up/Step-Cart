@@ -15,6 +15,7 @@ const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
     });
     toggleLoading();
     const [apiData, bumpData] = await Promise.all([fetchProducts({ products }), fetchProducts({ bump: bump?.product })]);
+    console.log(apiData)
     const buttons = document.querySelectorAll("[cart-button]");
     setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
