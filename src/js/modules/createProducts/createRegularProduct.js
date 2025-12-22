@@ -9,7 +9,7 @@ const createRegularProduct = ({ product, isBump }) => {
   let currentValue = product.options[0].values.find((value) => value.in_stock);
   image.src = currentValue.images[0];
   image.alt = currentValue.name;
-  name.innerHTML = product.name;
+  name.innerHTML = product.configs.name || product.name;
   const [dropdown, inputs] = createDropdownSelector({ product });
   desc.appendChild(dropdown);
   oldPrice.innerHTML = product.price;

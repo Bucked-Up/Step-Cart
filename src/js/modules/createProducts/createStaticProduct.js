@@ -6,7 +6,7 @@ const createStaticProduct = ({ product, isDiscounted = true, prodQuantity, isBum
   const { card, image, name, desc, oldPrice, newPrice, quantity } = createProductCard(product);
   image.src = product.image;
   image.alt = product.name;
-  name.innerHTML = product.name;
+  name.innerHTML = product.configs.name || product.name;
   if (isBump) {
     const [addButton, removeButton] = createBumpButtons({ product, card });
     addButton.addEventListener("click", () => {

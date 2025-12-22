@@ -63,7 +63,7 @@ const createStep = ({ product, stepsWrapper }) => {
 
   cardImage.src = firstAvailableValue.images[0];
   cardImage.alt = firstAvailableValue.name;
-  name.innerHTML = product.name;
+  name.innerHTML = product.configs.name || product.name;
   desc.innerHTML = firstAvailableValue.name;
   setOldPrice(oldPrice, firstAvailableValue.price);
   setNewPrice(newPrice, firstAvailableValue.price);
@@ -107,7 +107,7 @@ const createStep = ({ product, stepsWrapper }) => {
             addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}/${product.options[1].id}-${currentSecondaryInput.value}`, replace: true });
             cardImage.src = currentPrimaryValue.images[0];
             cardImage.alt = currentPrimaryValue.name;
-            name.innerHTML = product.name;
+            name.innerHTML = product.configs.name || product.name;
             desc.innerHTML = `${currentPrimaryValue.name}<br>${product.options[1].values.find((value) => value.id == currentSecondaryInput.value).name}`;
           }
         } else {
@@ -117,7 +117,7 @@ const createStep = ({ product, stepsWrapper }) => {
           setNewPrice(newPrice, value.price);
           cardImage.src = value.images[0];
           cardImage.alt = value.name;
-          name.innerHTML = product.name;
+          name.innerHTML = product.configs.name || product.name;
           desc.innerHTML = value.name;
         }
       });
@@ -150,7 +150,7 @@ const createStep = ({ product, stepsWrapper }) => {
           addRegularProduct({ product, choice: `${product.options[0].id}-${primaryInputs.find((input) => input.checked).value}/${product.options[1].id}-${input.value}`, replace: true });
           cardImage.src = currentPrimaryValue.images[0];
           cardImage.alt = currentPrimaryValue.name;
-          name.innerHTML = product.name;
+          name.innerHTML = product.configs.name || product.name;
           desc.innerHTML = `${currentPrimaryValue.name}<br>${value.name}`;
         });
       });
