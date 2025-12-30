@@ -1,7 +1,8 @@
-import { addRegularProduct, removeProduct } from "../data.js";
+import { addRegularProduct, getTotalValue, removeProduct, setTotalValue } from "../data.js";
 import createBumpButtons from "./createBumpButtons.js";
 import createDropdownSelector from "./createDropdownSelector.js";
 import createProductCard from "./createProductCard.js";
+import { setNewPrice, setOldPrice, updateVariantValue } from "./handleVariantValues.js";
 
 const createRegularProduct = ({ product, isBump }) => {
   const { card, image, name, desc, oldPrice, newPrice } = createProductCard(product);
@@ -23,8 +24,11 @@ const createRegularProduct = ({ product, isBump }) => {
       image.alt = value.name;
       currentValue = value;
       if (isAdded) {
+        updateVariantValue(product, value);
         addRegularProduct({ product, choice: `${product.options[0].id}-${currentValue.id}`, replace: true });
       }
+      setOldPrice(product, oldPrice, value.price);
+      setNewPrice(product, newPrice, value.price);
     });
   });
 
@@ -33,10 +37,12 @@ const createRegularProduct = ({ product, isBump }) => {
     addButton.addEventListener("click", () => {
       isAdded = true;
       addRegularProduct({ product, choice: `${product.options[0].id}-${currentValue.id}`, replace: true });
+      setTotalValue(getTotalValue() + Number(product.options[0].values.find((value) => value.id == inputs.find((input) => input.checked).value).price.split("$")[1])) || 0;
     });
     removeButton.addEventListener("click", () => {
       isAdded = false;
       removeProduct({ product });
+      setTotalValue(getTotalValue() - Number(product.options[0].values.find((value) => value.id == inputs.find((input) => input.checked).value).price.split("$")[1])) || 0;
     });
   }
   return card;

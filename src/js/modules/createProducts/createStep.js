@@ -2,21 +2,11 @@ import { addRegularProduct, getProductsWrapper, getTotalValue, setTotalValue } f
 import createImageColorSelector from "./createImageColorSelector.js";
 import createProductCard from "./createProductCard.js";
 import createSizeSelectors from "./createSizeSelectors.js";
+import { setNewPrice, setOldPrice, updateVariantValue } from "./handleVariantValues.js";
 import isDependent from "./isDepentent.js";
 
 const createStep = ({ product, stepsWrapper }) => {
   const dependentOutOfStock = (value1, value2) => product.stock[Object.keys(product.stock).find((key) => key.includes(value1) && key.includes(value2))] <= 0;
-  const setOldPrice = (el, price) => (el.innerHTML = `$${(Number(product.price.split("$")[1]) + Number(price.split("$")[1])).toFixed(2)}`);
-  const setNewPrice = (el, price) => {
-    if (Number(price.split("$")[1]) === 0) {
-      el.innerHTML = product.configs.newPrice.value;
-      if (product.configs.newPrice.value === "FREE") el.style.color = "#0cb23b";
-      return;
-    }
-    el.style = "";
-    const newPrice = product.configs.newPrice.value === "FREE" ? `$0.00` : product.configs.newPrice.value;
-    el.innerHTML = `$${(Number(price.split("$")[1]) + Number(newPrice.split("$")[1])).toFixed(2)}`;
-  };
 
   const step = document.createElement("div");
   const imageWrapper = document.createElement("div");
@@ -44,12 +34,6 @@ const createStep = ({ product, stepsWrapper }) => {
 
   if (product.configs.newPrice.value !== "FREE") setTotalValue(getTotalValue() + Number(product.configs.newPrice.value.split("$")[1]));
 
-  const updateVariantValue = (variant) => {
-    setTotalValue(getTotalValue() - currentVariantPrice);
-    currentVariantPrice = Number(variant.price.split("$")[1]);
-    setTotalValue(getTotalValue() + currentVariantPrice);
-  };
-
   if (isDependent(product)) {
     const values = product.options[0].values;
     firstAvailableValue = values.find((value) => Object.keys(product.stock).some((key) => key.includes(value.id) && product.stock[key] > 0));
@@ -65,8 +49,8 @@ const createStep = ({ product, stepsWrapper }) => {
   cardImage.alt = firstAvailableValue.name;
   name.innerHTML = product.configs.name || product.name;
   desc.innerHTML = firstAvailableValue.name;
-  setOldPrice(oldPrice, firstAvailableValue.price);
-  setNewPrice(newPrice, firstAvailableValue.price);
+  setOldPrice(product, oldPrice, firstAvailableValue.price);
+  setNewPrice(product, newPrice, firstAvailableValue.price);
 
   image.src = firstAvailableValue.images[0];
   image.alt = `${product.name} / ${firstAvailableValue.name}`;
@@ -112,9 +96,9 @@ const createStep = ({ product, stepsWrapper }) => {
           }
         } else {
           addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}`, replace: true });
-          updateVariantValue(value);
-          setOldPrice(oldPrice, value.price);
-          setNewPrice(newPrice, value.price);
+          updateVariantValue(product, value);
+          setOldPrice(product, oldPrice, value.price);
+          setNewPrice(product, newPrice, value.price);
           cardImage.src = value.images[0];
           cardImage.alt = value.name;
           name.innerHTML = product.configs.name || product.name;
@@ -142,9 +126,9 @@ const createStep = ({ product, stepsWrapper }) => {
 
         input.addEventListener("change", () => {
           const value = product.options[1].values.find((value) => value.id == input.value);
-          updateVariantValue(value);
-          setOldPrice(oldPrice, value.price);
-          setNewPrice(newPrice, value.price);
+          updateVariantValue(product, value);
+          setOldPrice(product, oldPrice, value.price);
+          setNewPrice(product, newPrice, value.price);
           selectorsWrapper.removeAttribute("invalid");
           selectorsWrapper.classList.remove("invalid");
           addRegularProduct({ product, choice: `${product.options[0].id}-${primaryInputs.find((input) => input.checked).value}/${product.options[1].id}-${input.value}`, replace: true });
