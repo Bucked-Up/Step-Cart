@@ -1,6 +1,6 @@
 import createCart from "./modules/createCart.js";
 import createProducts from "./modules/createProducts/createProducts.js";
-import { getBumpWrapper, getProductsWrapper, reset, setApiProducts, setBumpCoupon, setBumpProduct, setCouponCode } from "./modules/data.js";
+import { getBumpProduct, getBumpWrapper, getProductsWrapper, reset, setApiProducts, setBumpCoupon, setBumpProduct, setCouponCode } from "./modules/data.js";
 import fetchProducts from "./modules/fetchProducts.js";
 import handleError from "./modules/handleError.js";
 import toggleLoading from "./modules/toggleLoading.js";
@@ -15,11 +15,10 @@ const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
     });
     toggleLoading();
     const [apiData, bumpData] = await Promise.all([fetchProducts({ products }), fetchProducts({ bump: bump?.product })]);
-    console.log(apiData)
     const buttons = document.querySelectorAll("[cart-button]");
-    setBumpProduct(bumpData);
+    if (!Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
-    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({bumpTitle: bump?.title});
+    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title });
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
       el.addEventListener("click", () => {
         cartWrapper.classList.remove("active");
@@ -55,7 +54,7 @@ const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
           if (bump) setBumpCoupon(bump.couponCode);
         }
         createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity });
-        if (bump?.product) createProducts({ cartQuantity, isBump: true });
+        if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
         cartWrapper.classList.add("active");
         document.body.style.overflow = "hidden";
       });
