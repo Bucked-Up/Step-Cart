@@ -1,7 +1,7 @@
 import { setBumpWrapper, setProductsWrapper } from "./data.js";
 import handlePurchase from "./handlePurchase.js";
 
-const createCart = () => {
+const createCart = ({ bumpTitle }) => {
   const cartWrapper = document.createElement("div");
   const cartBackdrop = document.createElement("div");
   cartWrapper.classList.add("cart-wrapper");
@@ -13,6 +13,8 @@ const createCart = () => {
   document.body.appendChild(cartWrapper);
   cartWrapper.appendChild(cartBackdrop);
   cartWrapper.appendChild(cart);
+  const bumpTitleEl = cart.querySelector(".cart__bumps__title");
+  if (bumpTitle) bumpTitleEl.innerHTML = bumpTitle;
   const cartQuantity = cart.querySelector("[cart-qtty]");
   const closeCartButtons = cart.querySelectorAll("[close-cart]");
   const productsWrapper = cart.querySelector("[cart-products]");

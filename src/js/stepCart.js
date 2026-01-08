@@ -19,7 +19,7 @@ const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
     const buttons = document.querySelectorAll("[cart-button]");
     setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
-    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart();
+    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({bumpTitle: bump?.title});
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
       el.addEventListener("click", () => {
         cartWrapper.classList.remove("active");
