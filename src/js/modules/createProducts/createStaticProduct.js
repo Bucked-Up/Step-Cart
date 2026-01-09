@@ -21,13 +21,13 @@ const createStaticProduct = ({ product, isDiscounted = true, prodQuantity, isBum
   if (actualQuantity > 1) quantity.innerHTML = actualQuantity;
   else quantity.style.display = "none";
   if (isDiscounted && !product.configs.notDiscounted) {
-    oldPrice.innerHTML = `$${Number(product.price.split("$")[1]) * actualQuantity}`;
+    oldPrice.innerHTML = `$${(Number(product.price.split("$")[1]) * actualQuantity).toFixed(2)}`;
     newPrice.innerHTML = product.configs.newPrice.value;
     if (product.configs.newPrice.value !== "FREE") setTotalValue(getTotalValue() + Number(product.configs.newPrice.value.split("$")[1]));
     else newPrice.style.color = "#0cb23b";
   } else {
     setTotalValue(getTotalValue() + Number(product.price.split("$")[1]) * actualQuantity);
-    newPrice.innerHTML = `$${Number(product.price.split("$")[1]) * actualQuantity}`;
+    newPrice.innerHTML = `$${(Number(product.price.split("$")[1]) * actualQuantity).toFixed(2)}`;
   }
   return card;
 };
