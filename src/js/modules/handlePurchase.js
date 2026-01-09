@@ -3,7 +3,7 @@ import toggleLoading from "./toggleLoading.js";
 import getCookie from "./track/getCookie.js";
 import sendVibeLead from "./track/sendVibeLead.js";
 
-const handlePurchase = () => {
+const handlePurchase = ({ country }) => {
   toggleLoading();
   const products = getProducts();
   const urlParams = new URLSearchParams(window.location.search);
@@ -24,7 +24,11 @@ const handlePurchase = () => {
     });
   });
   sendVibeLead();
-  window.location.href = `https://funnels.buckedup.com/cart/add?${urlParams}${string}&clear=true`;
+  let url = "https://funnels.buckedup.com/cart/add?";
+  if (country === "us-main") url = "https://buckedup.com/cart/add?";
+  else if (country === "uk") url = "https://www.buckedup.co.uk/cart/add?";
+  else if (country && country !== "us") url = "https://${country}.buckedup.com/cart/add?";
+  window.location.href = `${url}${urlParams}${string}&clear=true`;
 };
 
 export default handlePurchase;

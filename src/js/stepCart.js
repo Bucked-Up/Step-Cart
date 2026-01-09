@@ -5,7 +5,7 @@ import fetchProducts from "./modules/fetchProducts.js";
 import handleError from "./modules/handleError.js";
 import toggleLoading from "./modules/toggleLoading.js";
 
-const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
+const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) => {
   try {
     window.addEventListener("pageshow", function (event) {
       if (event.persisted) {
@@ -14,11 +14,11 @@ const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
       }
     });
     toggleLoading();
-    const [apiData, bumpData] = await Promise.all([fetchProducts({ products }), fetchProducts({ bump: bump?.product })]);
+    const [apiData, bumpData] = await Promise.all([fetchProducts({ products, country }), fetchProducts({ bump: bump?.product })]);
     const buttons = document.querySelectorAll("[cart-button]");
     if (bumpData && !Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
-    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title });
+    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title, country });
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
       el.addEventListener("click", () => {
         cartWrapper.classList.remove("active");
