@@ -16,7 +16,7 @@ const stepCart = async ({ products, bump, buttonOptions, couponCode }) => {
     toggleLoading();
     const [apiData, bumpData] = await Promise.all([fetchProducts({ products }), fetchProducts({ bump: bump?.product })]);
     const buttons = document.querySelectorAll("[cart-button]");
-    if (!Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
+    if (bumpData && !Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
     const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title });
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
