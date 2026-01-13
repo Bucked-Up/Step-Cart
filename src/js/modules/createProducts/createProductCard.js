@@ -20,6 +20,7 @@ const createProductCard = (product) => {
   prices.classList.add("cart__product__prices");
   oldPrice.classList.add("cart__product__old-price");
   newPrice.classList.add("cart__product__new-price");
+  newPrice.setAttribute("prod-id", product.id);
   quantity.classList.add("cart__product__quantity");
 
   card.appendChild(cardContent);

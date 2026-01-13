@@ -1,4 +1,5 @@
-import { getBumpCoupon, getBumpWrapper, getCouponCode, getGlobalQuantity, getProductsWrapper, getTotalValue, setCouponCode, setGlobalQuantity, setTotalValue } from "../data.js";
+import { getApiProducts, getBumpCoupon, getBumpWrapper, getCouponCode, getGlobalQuantity, getProductsWrapper, getTotalValue, setCouponCode, setGlobalQuantity, setTotalValue } from "../data.js";
+import getPrice from "../utils/getPrice.js";
 
 const createBumpButtons = ({ product, card }) => {
   const addButton = document.createElement("button");
@@ -14,12 +15,33 @@ const createBumpButtons = ({ product, card }) => {
   removeButton.style.display = "none";
   card.appendChild(removeButton);
   let prevCoupon = getCouponCode();
+  let oldProductsValue = 0;
+  const products = getApiProducts();
+  const productsPrices = [];
+  if (product.configs.changePrices) {
+    product.configs.changePrices.forEach((newPrice) => {
+      const product = products.find((prod) => prod.id == newPrice.id);
+      console.log(product);
+      oldProductsValue += getPrice(product.price);
+    });
+  }
   addButton.addEventListener("click", () => {
     setCouponCode(getBumpCoupon());
     addButton.style.display = "none";
     removeButton.style = "";
     getProductsWrapper().appendChild(card);
-    setTotalValue(getTotalValue() + Number(product.configs.newPrice.value.split("$")[1]));
+    let newTotal = getTotalValue() + getPrice(product.configs.newPrice.value);
+    if (product.configs.changePrices) {
+      product.configs.changePrices.forEach((newPrice) => {
+        const product = products.find((prod) => prod.id == newPrice.id);
+        const priceEl = document.querySelector(`.cart__product__new-price[prod-id="${product.id}"]`);
+        priceEl.innerHTML = newPrice.newPrice;
+        const productPrice = getPrice(product.configs.newPrice.value || product.price);
+        productsPrices.push({ id: product.id, price: productPrice });
+        newTotal = newTotal - (newPrice.newPrice == "FREE" ? productPrice : productPrice - getPrice(newPrice.newPrice));
+      });
+    }
+    setTotalValue(newTotal);
     setGlobalQuantity(getGlobalQuantity() + 1);
   });
   removeButton.addEventListener("click", () => {
@@ -27,8 +49,17 @@ const createBumpButtons = ({ product, card }) => {
     removeButton.style.display = "none";
     addButton.style = "";
     getBumpWrapper().appendChild(card);
-    setTotalValue(getTotalValue() - Number(product.configs.newPrice.value.split("$")[1]));
-    // removeProduct({ product });
+    let newTotal = getTotalValue() - getPrice(product.configs.newPrice.value);
+    if (product.configs.changePrices) {
+      product.configs.changePrices.forEach((newPrice) => {
+        const product = products.find((prod) => prod.id == newPrice.id);
+        const priceEl = document.querySelector(`.cart__product__new-price[prod-id="${product.id}"]`);
+        const oldPrice = productsPrices.find((el) => el.id == product.id).price;
+        priceEl.innerHTML = `$${oldPrice}`;
+        newTotal = newTotal + (newPrice.newPrice == "FREE" ? oldPrice : oldPrice - getPrice(newPrice.newPrice));
+      });
+    }
+    setTotalValue(newTotal);
     setGlobalQuantity(getGlobalQuantity() - 1);
   });
   return [addButton, removeButton];
