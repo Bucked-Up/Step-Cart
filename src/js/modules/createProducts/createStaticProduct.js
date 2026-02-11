@@ -4,6 +4,7 @@ import createProductCard from "./createProductCard.js";
 
 const createStaticProduct = ({ product, isDiscounted = true, prodQuantity, isBump }) => {
   const { card, image, name, desc, oldPrice, newPrice, quantity } = createProductCard(product);
+  if (!product.configs.newPrice) isDiscounted = false;
   image.src = product.image;
   image.alt = product.name;
   name.innerHTML = product.configs.name || product.name;

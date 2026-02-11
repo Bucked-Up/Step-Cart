@@ -13,8 +13,12 @@ const createRegularProduct = ({ product, isBump }) => {
   name.innerHTML = product.configs.name || product.name;
   const [dropdown, inputs] = createDropdownSelector({ product });
   desc.appendChild(dropdown);
-  oldPrice.innerHTML = product.price;
-  newPrice.innerHTML = product.configs.newPrice.value;
+  if (product.configs.newPrice) {
+    oldPrice.innerHTML = product.price;
+    newPrice.innerHTML = product.configs.newPrice.value;
+  } else {
+    newPrice.innerHTML = product.price;
+  }
 
   inputs.find((input) => input.value == currentValue.id).checked = true;
   inputs.forEach((input) => {
@@ -27,8 +31,12 @@ const createRegularProduct = ({ product, isBump }) => {
         updateVariantValue(product, value);
         addRegularProduct({ product, choice: `${product.options[0].id}-${currentValue.id}`, replace: true });
       }
-      setOldPrice(product, oldPrice, value.price);
-      setNewPrice(product, newPrice, value.price);
+      if (product.configs.newPrice) {
+        setOldPrice(product, oldPrice, value.price);
+        setNewPrice(product, newPrice, value.price);
+      } else {
+        setOldPrice(product, newPrice, value.price);
+      }
     });
   });
 
