@@ -5,7 +5,7 @@ import createProductCard from "./createProductCard.js";
 import { setNewPrice, setOldPrice, updateVariantValue } from "./handleVariantValues.js";
 
 const createRegularProduct = ({ product, isBump }) => {
-  const { card, image, name, desc, oldPrice, newPrice } = createProductCard(product);
+  const { card, image, name, desc, oldPrice, newPrice } = createProductCard(product, isBump);
   let isAdded = false;
   let currentValue = product.options[0].values.find((value) => value.in_stock);
   image.src = currentValue.images[0];

@@ -25,7 +25,7 @@ const createStaticProduct = ({ product, isDiscounted = true, prodQuantity, isBum
     oldPrice.innerHTML = `$${(Number(product.price.split("$")[1]) * actualQuantity).toFixed(2)}`;
     newPrice.innerHTML = product.configs.newPrice.value;
     if (product.configs.newPrice.value !== "FREE") setTotalValue(getTotalValue() + Number(product.configs.newPrice.value.split("$")[1]));
-    else newPrice.style.color = "#0cb23b";
+    else newPrice.style.color = "#D2232A";
   } else {
     setTotalValue(getTotalValue() + Number(product.price.split("$")[1]) * actualQuantity);
     newPrice.innerHTML = `$${(Number(product.price.split("$")[1]) * actualQuantity).toFixed(2)}`;

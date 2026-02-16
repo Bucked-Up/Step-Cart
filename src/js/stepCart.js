@@ -5,7 +5,7 @@ import fetchProducts from "./modules/fetchProducts.js";
 import handleError from "./modules/handleError.js";
 import toggleLoading from "./modules/toggleLoading.js";
 
-const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) => {
+const stepCart = async ({ title, subTitle, products, country, bump, buttonOptions, couponCode }) => {
   try {
     window.addEventListener("pageshow", function (event) {
       if (event.persisted) {
@@ -18,12 +18,12 @@ const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) 
     const buttons = document.querySelectorAll("[cart-button]");
     if (bumpData && !Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
-    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title, country });
+    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsBack, backToSteps, cartQuantity } = createCart({ title, subTitle, bumpTitle: bump?.title, country });
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
       el.addEventListener("click", () => {
         cartWrapper.classList.remove("active");
         document.body.style = "";
-      })
+      }),
     );
     buttons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -53,7 +53,7 @@ const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) 
           setApiProducts(apiData);
           if (bump) setBumpCoupon(bump.couponCode);
         }
-        createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity });
+        createProducts({ stepsWrapper, stepsBack, backToSteps, cartQuantity });
         if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
         cartWrapper.classList.add("active");
         document.body.style.overflow = "hidden";
@@ -66,3 +66,4 @@ const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) 
   }
 };
 window.stepCart = stepCart;
+// export default stepCart;

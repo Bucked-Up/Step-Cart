@@ -1,4 +1,4 @@
-const createProductCard = (product) => {
+const createProductCard = (product, isBump) => {
   const card = document.createElement("div");
   const cardContent = document.createElement("div");
   const imageWrapper = document.createElement("div");
@@ -23,16 +23,18 @@ const createProductCard = (product) => {
   newPrice.setAttribute("prod-id", product.id);
   quantity.classList.add("cart__product__quantity");
 
+  if (isBump) card.appendChild(name);
   card.appendChild(cardContent);
+
   cardContent.appendChild(imageWrapper);
   cardContent.appendChild(texts);
   cardContent.appendChild(prices);
   imageWrapper.appendChild(image);
   if (product.configs.quantity) imageWrapper.appendChild(quantity);
-  texts.appendChild(name);
+  if (!isBump) texts.appendChild(name);
   texts.appendChild(desc);
-  prices.appendChild(oldPrice);
   prices.appendChild(newPrice);
+  prices.appendChild(oldPrice);
 
   return { card, cardContent, image, name, desc, oldPrice, newPrice, quantity };
 };

@@ -67,7 +67,7 @@ const getColors = (name) => {
   return [finalPrimary, finalSecondary];
 };
 
-const createImageColorSelector = ({ product, image, subTitle }) => {
+const createImageColorSelector = ({ product, image }) => {
   let hasChecked = false;
   const selectors = [];
   const inputs = [];
@@ -110,7 +110,6 @@ const createImageColorSelector = ({ product, image, subTitle }) => {
     input.addEventListener("change", () => {
       image.src = value.images[0];
       image.alt = `${product.name} / ${value.name}`;
-      subTitle.innerHTML = value.name;
     });
   });
   return [selectors, inputs];

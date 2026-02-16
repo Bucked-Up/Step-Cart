@@ -12,17 +12,28 @@ const createStep = ({ product, stepsWrapper }) => {
   const step = document.createElement("div");
   const imageWrapper = document.createElement("div");
   const image = document.createElement("img");
+  const titlePriceWrapper = document.createElement("div");
+  const pricesWrapper = document.createElement("div");
   const title = document.createElement("p");
-  const subTitle = document.createElement("p");
   const button = document.createElement("button");
   const { card, image: cardImage, name, desc, oldPrice, newPrice } = createProductCard(product);
   getProductsWrapper().appendChild(card);
+
+  titlePriceWrapper.appendChild(title);
+  titlePriceWrapper.classList.add("cart__steps__step__title-price-wrapper");
+  const oldPriceTitle = document.createElement("p");
+  const newPriceTitle = document.createElement("p");
+  pricesWrapper.appendChild(oldPriceTitle);
+  pricesWrapper.appendChild(newPriceTitle);
+  titlePriceWrapper.appendChild(pricesWrapper);
+  pricesWrapper.classList.add("cart__steps__step__title-price-wrapper__prices-wrapper");
+  oldPriceTitle.classList.add("cart__steps__step__title-price-wrapper__old-price");
+  newPriceTitle.classList.add("cart__steps__step__title-price-wrapper__new-price");
 
   step.classList.add("cart__steps__step");
   imageWrapper.classList.add("cart__steps__step__image-wrapper");
   image.classList.add("cart__steps__step__image");
   title.classList.add("cart__steps__step__title");
-  subTitle.classList.add("cart__steps__step__sub-title");
   button.classList.add("cart__steps__step__button");
   button.type = "button";
 
@@ -33,13 +44,11 @@ const createStep = ({ product, stepsWrapper }) => {
   let secondarySelectorsWrapper;
 
   if (product.configs.newPrice && product.configs.newPrice.value !== "FREE") setTotalValue(getTotalValue() + Number(product.configs.newPrice.value.split("$")[1]));
-  else if(!product.configs.newPrice) setTotalValue(getTotalValue() + getPrice(product.price));
+  else if (!product.configs.newPrice) setTotalValue(getTotalValue() + getPrice(product.price));
 
   if (isDependent(product)) {
     const values = product.options[0].values;
     firstAvailableValue = values.find((value) => Object.keys(product.stock).some((key) => key.includes(value.id) && product.stock[key] > 0));
-    // const secondaryValue = product.options[1].values.find((value) => Object.keys(product.stock).some((key) => key.includes(value.id) && key.includes(firstAvailableValue.id) && product.stock[key] > 0));
-    // addRegularProduct({ product, choice: `${product.options[0].id}-${firstAvailableValue.id}/${product.options[1].id}-${secondaryValue.id}`, replace: true });
     currentPrimaryValue = firstAvailableValue;
   } else {
     firstAvailableValue = product.options[0].values.find((value) => value.in_stock);
@@ -53,23 +62,24 @@ const createStep = ({ product, stepsWrapper }) => {
   if (product.configs.newPrice) {
     setOldPrice(product, oldPrice, firstAvailableValue.price);
     setNewPrice(product, newPrice, firstAvailableValue.price);
+    oldPriceTitle.innerHTML = oldPrice.innerHTML;
+    newPriceTitle.innerHTML = newPrice.innerHTML;
   } else {
     setOldPrice(product, newPrice, firstAvailableValue.price);
+    newPriceTitle.innerHTML = newPrice.innerHTML;
   }
 
   image.src = firstAvailableValue.images[0];
   image.alt = `${product.name} / ${firstAvailableValue.name}`;
   title.innerHTML = `Choose your ${product.name}:`;
-  subTitle.innerHTML = firstAvailableValue.name;
   button.innerHTML = "NEXT STEP";
 
   step.appendChild(imageWrapper);
-  step.appendChild(title);
-  step.appendChild(subTitle);
+  step.appendChild(titlePriceWrapper);
   imageWrapper.appendChild(image);
 
   if (product.configs.selector === "images" || product.configs.selector === "colors" || isDependent(product)) {
-    const [selectors, inputs] = createImageColorSelector({ product, image, subTitle });
+    const [selectors, inputs] = createImageColorSelector({ product, image });
     primaryInputs = inputs;
     const selectorsWrapper = document.createElement("div");
     selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
@@ -102,11 +112,14 @@ const createStep = ({ product, stepsWrapper }) => {
         } else {
           addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}`, replace: true });
           updateVariantValue(product, value);
-          if(product.configs.newPrice){
+          if (product.configs.newPrice) {
             setOldPrice(product, oldPrice, value.price);
             setNewPrice(product, newPrice, value.price);
-          }else{
+            oldPriceTitle.innerHTML = oldPrice.innerHTML;
+            newPriceTitle.innerHTML = newPrice.innerHTML;
+          } else {
             setOldPrice(product, newPrice, value.price);
+            newPriceTitle.innerHTML = newPrice.innerHTML;
           }
           cardImage.src = value.images[0];
           cardImage.alt = value.name;
@@ -136,11 +149,14 @@ const createStep = ({ product, stepsWrapper }) => {
         input.addEventListener("change", () => {
           const value = product.options[1].values.find((value) => value.id == input.value);
           updateVariantValue(product, value);
-          if(product.configs.newPrice){
+          if (product.configs.newPrice) {
             setOldPrice(product, oldPrice, value.price);
             setNewPrice(product, newPrice, value.price);
-          }else{
+            oldPriceTitle.innerHTML = oldPrice.innerHTML;
+            newPriceTitle.innerHTML = newPrice.innerHTML;
+          } else {
             setOldPrice(product, newPrice, value.price);
+            newPriceTitle.innerHTML = newPrice.innerHTML;
           }
           selectorsWrapper.removeAttribute("invalid");
           selectorsWrapper.classList.remove("invalid");

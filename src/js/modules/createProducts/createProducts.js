@@ -4,7 +4,7 @@ import createStaticProduct from "./createStaticProduct.js";
 import createStep from "./createStep.js";
 import isStatic from "./isStatic.js";
 
-const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump }) => {
+const createProducts = ({ stepsWrapper, stepsBack, backToSteps, isBump }) => {
   const wrapper = isBump ? getBumpWrapper() : getProductsWrapper();
   const products = isBump ? [getBumpProduct()] : getApiProducts();
   const steps = [];
@@ -39,14 +39,12 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
   });
   if (steps.length > 0) {
     stepsWrapper.classList.add("active");
-    stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
     steps[0].classList.add("active");
     stepsBack.addEventListener("click", () => {
       if (currentStep === 0) return;
       steps[currentStep].classList.remove("active");
       currentStep--;
       steps[currentStep].classList.add("active");
-      stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
       if (currentStep === 0) stepsBack.classList.remove("active");
     });
     stepButtons.forEach((button, i) => {
@@ -63,7 +61,6 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
         steps[currentStep].classList.remove("active");
         stepsBack.classList.add("active");
         currentStep++;
-        stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
         steps[currentStep].classList.add("active");
       });
     });
