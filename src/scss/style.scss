@@ -177,7 +177,7 @@
         object-fit: cover;
       }
       &__title-price-wrapper {
-        margin-bottom: 16px;
+        margin-bottom: 8px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -234,7 +234,9 @@
         letter-spacing: 0.2px;
         font-weight: 900;
         line-height: 100%;
-        // margin-bottom: 16px !important;
+        &.margin-bottom{
+          margin-bottom: 4px !important;
+        }
         text-transform: uppercase;
       }
       &__selectors-wrapper {
@@ -269,23 +271,37 @@
             }
           }
           &.sizes-selector {
-            border-radius: 4px;
             display: flex;
             flex-direction: column;
             gap: 2px;
             align-items: center;
             justify-content: center;
-            font-size: 17px;
-            text-align: center;
-            background-color: #fff;
-            font-weight: 700;
             flex-basis: 60px;
-            flex-grow: 1;
-            aspect-ratio: unset;
-            padding: 8px 4px;
             .price-up-text {
               font-size: 9px;
             }
+          }
+          &.text-selector {
+            flex-basis: 40%;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          &.text-selector,
+          &.sizes-selector {
+            padding: 8px 4px;
+            background-color: #fff;
+            border-radius: 10px;
+            aspect-ratio: unset;
+            flex-grow: 1;
+            color: #99a1af;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 125%; /* 125% */
+            letter-spacing: 0.064px;
+            text-transform: uppercase;
           }
           border: 2px solid #d9d9d9;
           border-radius: 50%;
@@ -310,6 +326,7 @@
           }
           &:has(input:checked) {
             border-color: red;
+            color: black;
           }
           &:has(input:disabled) {
             cursor: not-allowed;

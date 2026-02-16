@@ -3,6 +3,7 @@ import getPrice from "../utils/getPrice.js";
 import createImageColorSelector from "./createImageColorSelector.js";
 import createProductCard from "./createProductCard.js";
 import createSizeSelectors from "./createSizeSelectors.js";
+import createTextSelector from "./createTextSelector.js";
 import { setNewPrice, setOldPrice, updateVariantValue } from "./handleVariantValues.js";
 import isDependent from "./isDepentent.js";
 
@@ -78,8 +79,8 @@ const createStep = ({ product, stepsWrapper }) => {
   step.appendChild(titlePriceWrapper);
   imageWrapper.appendChild(image);
 
-  if (product.configs.selector === "images" || product.configs.selector === "colors" || isDependent(product)) {
-    const [selectors, inputs] = createImageColorSelector({ product, image });
+  if (product.configs.selector === "images" || product.configs.selector === "colors" || product.configs.selector === "text" || isDependent(product)) {
+    const [selectors, inputs] = product.configs.selector === "text" ? createTextSelector({ product, image }) : createImageColorSelector({ product, image });
     primaryInputs = inputs;
     const selectorsWrapper = document.createElement("div");
     selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
@@ -140,6 +141,11 @@ const createStep = ({ product, stepsWrapper }) => {
       selectors.forEach((selector) => {
         selectorsWrapper.appendChild(selector);
       });
+      const title = document.createElement("p");
+      title.innerHTML = product.options[1].name;
+      step.appendChild(title);
+      title.classList.add("cart__steps__step__title");
+      title.classList.add("margin-bottom");
       step.appendChild(selectorsWrapper);
       inputs.forEach((input) => {
         if (dependentOutOfStock(input.value, firstAvailableValue.id)) {

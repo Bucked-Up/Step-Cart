@@ -66,4 +66,4 @@ const stepCart = async ({ title, subTitle, products, country, bump, buttonOption
   }
 };
 window.stepCart = stepCart;
-// export default stepCart;
+export default stepCart;
