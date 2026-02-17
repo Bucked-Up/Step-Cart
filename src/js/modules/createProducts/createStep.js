@@ -7,7 +7,7 @@ import createTextSelector from "./createTextSelector.js";
 import { setNewPrice, setOldPrice, updateVariantValue } from "./handleVariantValues.js";
 import isDependent from "./isDepentent.js";
 
-const createStep = ({ product, stepsWrapper }) => {
+const createStep = ({ product, stepsWrapper, noSelection }) => {
   const dependentOutOfStock = (value1, value2) => product.stock[Object.keys(product.stock).find((key) => key.includes(value1) && key.includes(value2))] <= 0;
 
   const step = document.createElement("div");
