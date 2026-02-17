@@ -49,6 +49,10 @@ const stepCart = async ({ title, subTitle, products, country, bump, buttonOption
           const invalidSelector = inlineProducts.querySelector("[invalid]");
           if (invalidSelector) {
             invalidSelector.classList.add("invalid");
+            invalidSelector.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
             return;
           }
         } else {
