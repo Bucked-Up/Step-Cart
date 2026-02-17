@@ -12,6 +12,7 @@ const createStep = ({ product, stepsWrapper }) => {
 
   const step = document.createElement("div");
   const imageWrapper = document.createElement("div");
+  const productInfoWrapper = document.createElement("div");
   const image = document.createElement("img");
   const titlePriceWrapper = document.createElement("div");
   const pricesWrapper = document.createElement("div");
@@ -32,6 +33,7 @@ const createStep = ({ product, stepsWrapper }) => {
   newPriceTitle.classList.add("cart__steps__step__title-price-wrapper__new-price");
 
   step.classList.add("cart__steps__step");
+  productInfoWrapper.classList.add("cart__steps__step__product-info-wrapper")
   imageWrapper.classList.add("cart__steps__step__image-wrapper");
   image.classList.add("cart__steps__step__image");
   title.classList.add("cart__steps__step__title");
@@ -76,7 +78,8 @@ const createStep = ({ product, stepsWrapper }) => {
   button.innerHTML = "NEXT STEP";
 
   step.appendChild(imageWrapper);
-  step.appendChild(titlePriceWrapper);
+  step.appendChild(productInfoWrapper);
+  productInfoWrapper.appendChild(titlePriceWrapper);
   imageWrapper.appendChild(image);
 
   if (product.configs.selector === "images" || product.configs.selector === "colors" || product.configs.selector === "text" || isDependent(product)) {
@@ -129,7 +132,7 @@ const createStep = ({ product, stepsWrapper }) => {
         }
       });
     });
-    step.appendChild(selectorsWrapper);
+    productInfoWrapper.appendChild(selectorsWrapper);
 
     if (isDependent(product)) {
       const [selectors, inputs] = createSizeSelectors({ product });
@@ -143,10 +146,10 @@ const createStep = ({ product, stepsWrapper }) => {
       });
       const title = document.createElement("p");
       title.innerHTML = product.options[1].name;
-      step.appendChild(title);
+      productInfoWrapper.appendChild(title);
       title.classList.add("cart__steps__step__title");
       title.classList.add("margin-bottom");
-      step.appendChild(selectorsWrapper);
+      productInfoWrapper.appendChild(selectorsWrapper);
       inputs.forEach((input) => {
         if (dependentOutOfStock(input.value, firstAvailableValue.id)) {
           input.setAttribute("disabled", "disabled");
@@ -176,7 +179,7 @@ const createStep = ({ product, stepsWrapper }) => {
     }
   }
 
-  step.appendChild(button);
+  if (!stepsWrapper.hasAttribute("inline-products")) step.appendChild(button);
   stepsWrapper.appendChild(step);
 
   return [step, button];

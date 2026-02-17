@@ -21,7 +21,6 @@ const createBumpButtons = ({ product, card }) => {
   if (product.configs.changePrices) {
     product.configs.changePrices.forEach((newPrice) => {
       const product = products.find((prod) => prod.id == newPrice.id);
-      console.log(product);
       oldProductsValue += getPrice(product.price);
     });
   }
