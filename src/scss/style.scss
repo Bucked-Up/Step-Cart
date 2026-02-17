@@ -309,6 +309,7 @@
             align-items: center;
             justify-content: center;
             flex-basis: 60px;
+            min-height: 43px;
             .price-up-text {
               font-size: 9px;
             }
@@ -394,6 +395,9 @@
               transform: rotate(-45deg) translateY(-50%);
             }
           }
+        }
+        &:last-child{
+          margin-bottom: 0 !important;
         }
       }
       button {
