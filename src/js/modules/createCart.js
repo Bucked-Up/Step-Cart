@@ -1,7 +1,7 @@
 import { setBumpWrapper, setProductsWrapper } from "./data.js";
 import handlePurchase from "./handlePurchase.js";
 
-const createCart = ({ bumpTitle, country }) => {
+const createCart = ({ bumpTitle, country, urlParams }) => {
   const cartWrapper = document.createElement("div");
   const cartBackdrop = document.createElement("div");
   cartWrapper.classList.add("cart-wrapper");
@@ -20,7 +20,7 @@ const createCart = ({ bumpTitle, country }) => {
   const productsWrapper = cart.querySelector("[cart-products]");
   const bumpWrapper = cart.querySelector("[cart-bumps]");
   const purchaseButton = document.querySelector("[purchase-button]");
-  purchaseButton.addEventListener("click", () => handlePurchase({ country }));
+  purchaseButton.addEventListener("click", () => handlePurchase({ country, urlParams }));
   setProductsWrapper(productsWrapper);
   setBumpWrapper(bumpWrapper);
   const backToSteps = cart.querySelector("[back-to-steps]");

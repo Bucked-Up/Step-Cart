@@ -13,17 +13,19 @@ const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) 
         document.body.style = "";
       }
     });
+    let urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.size == 0) urlParams = new URLSearchParams(window.location.hash.split("?")[1]);
     toggleLoading();
     const [apiData, bumpData] = await Promise.all([fetchProducts({ products, country }), fetchProducts({ bump: bump?.product })]);
     const buttons = document.querySelectorAll("[cart-button]");
     if (bumpData && !Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
-    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title, country });
+    const { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title, country, urlParams });
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
       el.addEventListener("click", () => {
         cartWrapper.classList.remove("active");
         document.body.style = "";
-      })
+      }),
     );
     buttons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -65,4 +67,5 @@ const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) 
     handleError();
   }
 };
+export default stepCart;
 window.stepCart = stepCart;
