@@ -3,10 +3,9 @@ import toggleLoading from "./toggleLoading.js";
 import getCookie from "./track/getCookie.js";
 import sendVibeLead from "./track/sendVibeLead.js";
 
-const handlePurchase = ({ country }) => {
+const handlePurchase = ({ country, urlParams }) => {
   toggleLoading();
   const products = getProducts();
-  const urlParams = new URLSearchParams(window.location.search);
   const rlAnonId = getCookie("rl_anonymous_id");
   if (rlAnonId) urlParams.set("rl_anonymous_id", rlAnonId);
   urlParams.set("cc", getCouponCode());

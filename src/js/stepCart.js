@@ -13,6 +13,8 @@ const stepCart = async ({ title, subTitle, products, country, bump, buttonOption
         document.body.style = "";
       }
     });
+    let urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.size == 0) urlParams = new URLSearchParams(window.location.hash.split("?")[1]);
     toggleLoading();
     const [apiData, bumpData] = await Promise.all([fetchProducts({ products, country }), fetchProducts({ bump: bump?.product })]);
 
@@ -90,5 +92,6 @@ const stepCart = async ({ title, subTitle, products, country, bump, buttonOption
     handleError();
   }
 };
+export default stepCart;
 window.stepCart = stepCart;
 export default stepCart;
