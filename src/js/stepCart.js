@@ -1,8 +1,11 @@
 import createCart from "./modules/createCart.js";
 import createProducts from "./modules/createProducts/createProducts.js";
-import { getBumpProduct, getBumpWrapper, getProductsWrapper, reset, setApiProducts, setBumpCoupon, setBumpProduct, setCouponCode } from "./modules/data.js";
+import handleProductWithSetVariant from "./modules/createProducts/handleProductWithSetVariant.js";
+import isStatic from "./modules/createProducts/isStatic.js";
+import { addStaticProduct, getBumpProduct, getBumpWrapper, getProductsWrapper, reset, setApiProducts, setBumpCoupon, setBumpProduct, setCouponCode } from "./modules/data.js";
 import fetchProducts from "./modules/fetchProducts.js";
 import handleError from "./modules/handleError.js";
+import handlePurchase from "./modules/handlePurchase.js";
 import toggleLoading from "./modules/toggleLoading.js";
 
 const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) => {
@@ -73,6 +76,18 @@ const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) 
             data.forEach((product) => (product.configs = products.find((el) => el.id == product.id)));
             setApiProducts(data);
             setCouponCode(buttonOptions[button.id].couponCode);
+            if (buttonOptions[button.id].noCart) {
+              data.forEach((product) => {
+                if (product.configs.variant) {
+                  handleProductWithSetVariant({ product });
+                }
+                else if (isStatic(product)) {
+                  addStaticProduct({ product, quantity: product.configs.quantity || 1 })
+                }
+              });
+              handlePurchase({ country, urlParams });
+              return;
+            }
             if (bump) {
               if (buttonOptions[button.id].bumpCoupon) setBumpCoupon(buttonOptions[button.id].bumpCoupon);
               else setBumpCoupon(bump.couponCode);

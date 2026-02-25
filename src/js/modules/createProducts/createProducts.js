@@ -1,8 +1,9 @@
-import { addRegularProduct, addStaticProduct, getApiProducts, getBumpProduct, getBumpWrapper, getGlobalQuantity, getProductsWrapper, setGlobalQuantity } from "../data.js";
+import { addStaticProduct, getApiProducts, getBumpProduct, getBumpWrapper, getGlobalQuantity, getProductsWrapper, setGlobalQuantity } from "../data.js";
 import createPlaceholderProduct from "./createPlaceholderProduct.js";
 import createRegularProduct from "./createRegularProduct.js";
 import createStaticProduct from "./createStaticProduct.js";
 import createStep from "./createStep.js";
+import handleProductWithSetVariant from "./handleProductWithSetVariant.js";
 import isStatic from "./isStatic.js";
 
 const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump }) => {
@@ -14,8 +15,7 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
   products.forEach((product) => {
     if (!isBump) setGlobalQuantity(getGlobalQuantity() + (product.configs.quantity || 1));
     if (product.configs.variant) {
-      const value = product.options[0].values.find((value) => value.id == product.configs.variant);
-      addRegularProduct({ product, choice: `${product.options[0].id}-${value.id}` });
+      const value = handleProductWithSetVariant({product})
       product.image = value.images[0];
       wrapper.appendChild(createStaticProduct({ product, isBump }));
       if (stepsWrapper.hasAttribute("inline-products")) stepsWrapper.appendChild(createPlaceholderProduct({ product }));
