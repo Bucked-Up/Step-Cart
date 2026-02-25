@@ -5,7 +5,7 @@ import createStaticProduct from "./createStaticProduct.js";
 import createStep from "./createStep.js";
 import isStatic from "./isStatic.js";
 
-const createProducts = ({ stepsWrapper, stepsBack, backToSteps, isBump }) => {
+const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump }) => {
   const wrapper = isBump ? getBumpWrapper() : getProductsWrapper();
   const products = isBump ? [getBumpProduct()] : getApiProducts();
   const steps = [];
@@ -18,7 +18,6 @@ const createProducts = ({ stepsWrapper, stepsBack, backToSteps, isBump }) => {
       addRegularProduct({ product, choice: `${product.options[0].id}-${value.id}` });
       product.image = value.images[0];
       wrapper.appendChild(createStaticProduct({ product, isBump }));
-      console.log(stepsWrapper, stepsWrapper.getAttribute("inline-products"));
       if (stepsWrapper.hasAttribute("inline-products")) stepsWrapper.appendChild(createPlaceholderProduct({ product }));
       return;
     }
@@ -42,12 +41,14 @@ const createProducts = ({ stepsWrapper, stepsBack, backToSteps, isBump }) => {
   });
   if (steps.length > 0) {
     stepsWrapper.classList.add("active");
+    if (stepsText) stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
     steps[0].classList.add("active");
     stepsBack.addEventListener("click", () => {
       if (currentStep === 0) return;
       steps[currentStep].classList.remove("active");
       currentStep--;
       steps[currentStep].classList.add("active");
+      if (stepsText) stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
       if (currentStep === 0) stepsBack.classList.remove("active");
     });
     stepButtons.forEach((button, i) => {
@@ -64,6 +65,7 @@ const createProducts = ({ stepsWrapper, stepsBack, backToSteps, isBump }) => {
         steps[currentStep].classList.remove("active");
         stepsBack.classList.add("active");
         currentStep++;
+        if (stepsText) stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
         steps[currentStep].classList.add("active");
       });
     });

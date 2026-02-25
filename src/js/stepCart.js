@@ -5,7 +5,7 @@ import fetchProducts from "./modules/fetchProducts.js";
 import handleError from "./modules/handleError.js";
 import toggleLoading from "./modules/toggleLoading.js";
 
-const stepCart = async ({ title, subTitle, products, country, bump, buttonOptions, couponCode }) => {
+const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) => {
   try {
     window.addEventListener("pageshow", function (event) {
       if (event.persisted) {
@@ -28,7 +28,7 @@ const stepCart = async ({ title, subTitle, products, country, bump, buttonOption
     const buttons = document.querySelectorAll("[cart-button]");
     if (bumpData && !Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
-    let { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsBack, backToSteps, cartQuantity } = createCart({ title, subTitle, bumpTitle: bump?.title, country });
+    let { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title, country, urlParams });
     const inlineProducts = document.querySelector("[inline-products]");
 
     if (inlineProducts) {
@@ -79,7 +79,7 @@ const stepCart = async ({ title, subTitle, products, country, bump, buttonOption
             }
             if (buttonOptions[button.id].bumpCoupon) setBumpCoupon(buttonOptions[button.id].bumpCoupon);
           } else initDefaultProducts();
-          createProducts({ stepsWrapper, stepsBack, backToSteps, cartQuantity });
+          createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity });
           if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
         }
         cartWrapper.classList.add("active");
@@ -94,4 +94,3 @@ const stepCart = async ({ title, subTitle, products, country, bump, buttonOption
 };
 export default stepCart;
 window.stepCart = stepCart;
-export default stepCart;
