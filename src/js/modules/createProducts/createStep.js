@@ -1,5 +1,6 @@
 import { addRegularProduct, getProductsWrapper, getTotalValue, setTotalValue } from "../data.js";
 import getPrice from "../utils/getPrice.js";
+import createDropdownSelector from "./createDropdownSelector.js";
 import createImageColorSelector from "./createImageColorSelector.js";
 import createProductCard from "./createProductCard.js";
 import createSizeSelectors from "./createSizeSelectors.js";
@@ -33,7 +34,7 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
   newPriceTitle.classList.add("cart__steps__step__title-price-wrapper__new-price");
 
   step.classList.add("cart__steps__step");
-  productInfoWrapper.classList.add("cart__steps__step__product-info-wrapper")
+  productInfoWrapper.classList.add("cart__steps__step__product-info-wrapper");
   imageWrapper.classList.add("cart__steps__step__image-wrapper");
   image.classList.add("cart__steps__step__image");
   title.classList.add("cart__steps__step__title");
@@ -82,101 +83,119 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
   productInfoWrapper.appendChild(titlePriceWrapper);
   imageWrapper.appendChild(image);
 
-  if (product.configs.selector === "images" || product.configs.selector === "colors" || product.configs.selector === "text" || isDependent(product)) {
-    const [selectors, inputs] = product.configs.selector === "text" ? createTextSelector({ product, image }) : createImageColorSelector({ product, image });
-    primaryInputs = inputs;
+  let selectors, inputs, dropdown;
+
+
+    switch (product.configs.selector) {
+      case "text":
+        [selectors, inputs] = createTextSelector({ product, image });
+        break;
+      case "images":
+      case "colors":
+        [selectors, inputs] = createImageColorSelector({ product, image });
+        break;
+      default:
+        if(isDependent(product)) [selectors, inputs] = createImageColorSelector({ product, image })
+        else [dropdown, inputs] = createDropdownSelector({ product, image });
+        break;
+    }
+  primaryInputs = inputs;
+  const selectorsWrapper = document.createElement("div");
+  selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
+  if (selectors)
+    selectors.forEach((selector) => {
+      selectorsWrapper.appendChild(selector);
+    });
+  else if (dropdown){
+    selectorsWrapper.appendChild(dropdown);
+    selectorsWrapper.removeAttribute("class")
+  } 
+  inputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      const value = product.options[0].values.find((value) => value.id == input.value);
+      if (isDependent(product)) {
+        currentPrimaryValue = value;
+        secondaryInputs.forEach((input) => {
+          input.removeAttribute("disabled");
+          if (dependentOutOfStock(input.value, value.id)) {
+            input.setAttribute("disabled", "disabled");
+            if (input.checked) {
+              input.checked = false;
+              secondarySelectorsWrapper.setAttribute("invalid", "invalid");
+            }
+          }
+        });
+        const currentSecondaryInput = secondaryInputs.find((input) => input.checked);
+        if (currentSecondaryInput) {
+          addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}/${product.options[1].id}-${currentSecondaryInput.value}`, replace: true });
+          cardImage.src = currentPrimaryValue.images[0];
+          cardImage.alt = currentPrimaryValue.name;
+          name.innerHTML = product.configs.name || product.name;
+          desc.innerHTML = `${currentPrimaryValue.name}<br>${product.options[1].values.find((value) => value.id == currentSecondaryInput.value).name}`;
+        }
+      } else {
+        addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}`, replace: true });
+        updateVariantValue(product, value);
+        if (product.configs.newPrice) {
+          setOldPrice(product, oldPrice, value.price);
+          setNewPrice(product, newPrice, value.price);
+          oldPriceTitle.innerHTML = oldPrice.innerHTML;
+          newPriceTitle.innerHTML = newPrice.innerHTML;
+        } else {
+          setOldPrice(product, newPrice, value.price);
+          newPriceTitle.innerHTML = newPrice.innerHTML;
+        }
+        cardImage.src = value.images[0];
+        cardImage.alt = value.name;
+        name.innerHTML = product.configs.name || product.name;
+        desc.innerHTML = value.name;
+      }
+    });
+  });
+  productInfoWrapper.appendChild(selectorsWrapper);
+
+  if (isDependent(product)) {
+    const [selectors, inputs] = createSizeSelectors({ product });
+    secondaryInputs = inputs;
     const selectorsWrapper = document.createElement("div");
+    secondarySelectorsWrapper = selectorsWrapper;
+    selectorsWrapper.setAttribute("invalid", "invalid");
     selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
     selectors.forEach((selector) => {
       selectorsWrapper.appendChild(selector);
     });
+    const title = document.createElement("p");
+    title.innerHTML = product.options[1].name;
+    productInfoWrapper.appendChild(title);
+    title.classList.add("cart__steps__step__title");
+    title.classList.add("margin-bottom");
+    productInfoWrapper.appendChild(selectorsWrapper);
     inputs.forEach((input) => {
+      if (dependentOutOfStock(input.value, firstAvailableValue.id)) {
+        input.setAttribute("disabled", "disabled");
+      }
+
       input.addEventListener("change", () => {
-        const value = product.options[0].values.find((value) => value.id == input.value);
-        if (isDependent(product)) {
-          currentPrimaryValue = value;
-          secondaryInputs.forEach((input) => {
-            input.removeAttribute("disabled");
-            if (dependentOutOfStock(input.value, value.id)) {
-              input.setAttribute("disabled", "disabled");
-              if (input.checked) {
-                input.checked = false;
-                secondarySelectorsWrapper.setAttribute("invalid", "invalid");
-              }
-            }
-          });
-          const currentSecondaryInput = secondaryInputs.find((input) => input.checked);
-          if (currentSecondaryInput) {
-            addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}/${product.options[1].id}-${currentSecondaryInput.value}`, replace: true });
-            cardImage.src = currentPrimaryValue.images[0];
-            cardImage.alt = currentPrimaryValue.name;
-            name.innerHTML = product.configs.name || product.name;
-            desc.innerHTML = `${currentPrimaryValue.name}<br>${product.options[1].values.find((value) => value.id == currentSecondaryInput.value).name}`;
-          }
+        const value = product.options[1].values.find((value) => value.id == input.value);
+        updateVariantValue(product, value);
+        if (product.configs.newPrice) {
+          setOldPrice(product, oldPrice, value.price);
+          setNewPrice(product, newPrice, value.price);
+          oldPriceTitle.innerHTML = oldPrice.innerHTML;
+          newPriceTitle.innerHTML = newPrice.innerHTML;
         } else {
-          addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}`, replace: true });
-          updateVariantValue(product, value);
-          if (product.configs.newPrice) {
-            setOldPrice(product, oldPrice, value.price);
-            setNewPrice(product, newPrice, value.price);
-            oldPriceTitle.innerHTML = oldPrice.innerHTML;
-            newPriceTitle.innerHTML = newPrice.innerHTML;
-          } else {
-            setOldPrice(product, newPrice, value.price);
-            newPriceTitle.innerHTML = newPrice.innerHTML;
-          }
-          cardImage.src = value.images[0];
-          cardImage.alt = value.name;
-          name.innerHTML = product.configs.name || product.name;
-          desc.innerHTML = value.name;
+          setOldPrice(product, newPrice, value.price);
+          newPriceTitle.innerHTML = newPrice.innerHTML;
         }
+        selectorsWrapper.removeAttribute("invalid");
+        selectorsWrapper.classList.remove("invalid");
+        addRegularProduct({ product, choice: `${product.options[0].id}-${primaryInputs.find((input) => input.checked).value}/${product.options[1].id}-${input.value}`, replace: true });
+        cardImage.src = currentPrimaryValue.images[0];
+        cardImage.alt = currentPrimaryValue.name;
+        name.innerHTML = product.configs.name || product.name;
+        desc.innerHTML = `${currentPrimaryValue.name}<br>${value.name}`;
       });
     });
-    productInfoWrapper.appendChild(selectorsWrapper);
-
-    if (isDependent(product)) {
-      const [selectors, inputs] = createSizeSelectors({ product });
-      secondaryInputs = inputs;
-      const selectorsWrapper = document.createElement("div");
-      secondarySelectorsWrapper = selectorsWrapper;
-      selectorsWrapper.setAttribute("invalid", "invalid");
-      selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
-      selectors.forEach((selector) => {
-        selectorsWrapper.appendChild(selector);
-      });
-      const title = document.createElement("p");
-      title.innerHTML = product.options[1].name;
-      productInfoWrapper.appendChild(title);
-      title.classList.add("cart__steps__step__title");
-      title.classList.add("margin-bottom");
-      productInfoWrapper.appendChild(selectorsWrapper);
-      inputs.forEach((input) => {
-        if (dependentOutOfStock(input.value, firstAvailableValue.id)) {
-          input.setAttribute("disabled", "disabled");
-        }
-
-        input.addEventListener("change", () => {
-          const value = product.options[1].values.find((value) => value.id == input.value);
-          updateVariantValue(product, value);
-          if (product.configs.newPrice) {
-            setOldPrice(product, oldPrice, value.price);
-            setNewPrice(product, newPrice, value.price);
-            oldPriceTitle.innerHTML = oldPrice.innerHTML;
-            newPriceTitle.innerHTML = newPrice.innerHTML;
-          } else {
-            setOldPrice(product, newPrice, value.price);
-            newPriceTitle.innerHTML = newPrice.innerHTML;
-          }
-          selectorsWrapper.removeAttribute("invalid");
-          selectorsWrapper.classList.remove("invalid");
-          addRegularProduct({ product, choice: `${product.options[0].id}-${primaryInputs.find((input) => input.checked).value}/${product.options[1].id}-${input.value}`, replace: true });
-          cardImage.src = currentPrimaryValue.images[0];
-          cardImage.alt = currentPrimaryValue.name;
-          name.innerHTML = product.configs.name || product.name;
-          desc.innerHTML = `${currentPrimaryValue.name}<br>${value.name}`;
-        });
-      });
-    }
   }
 
   if (!stepsWrapper.hasAttribute("inline-products")) step.appendChild(button);

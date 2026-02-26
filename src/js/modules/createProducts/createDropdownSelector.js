@@ -1,7 +1,7 @@
-const createDropdownSelector = ({ product }) => {
+const createDropdownSelector = ({ product, image }) => {
   const dropdown = document.createElement("div");
   dropdown.classList.add("cart__dropdown-selector");
-  const arrowIcon = new DOMParser().parseFromString('<svg width="20" height="17" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.5981 15.5C11.4434 17.5 8.55662 17.5 7.40192 15.5L1.33975 5C0.185047 3 1.62842 0.499998 3.93782 0.499998L16.0622 0.499999C18.3716 0.5 19.815 3 18.6603 5L12.5981 15.5Z" fill="black"></path></svg>', "image/svg+xml").documentElement;
+  const arrowIcon = new DOMParser().parseFromString('<svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.833008 0.83252L5.82911 5.82862L10.8252 0.83252" stroke="#99A1AF" stroke-width="1.66537" stroke-linecap="round" stroke-linejoin="round"/></svg>', "image/svg+xml").documentElement;
   const selectedWrapper = document.createElement("div");
   selectedWrapper.classList.add("cart__dropdown-selector__selected-wrapper");
   const selected = document.createElement("span");
@@ -41,6 +41,8 @@ const createDropdownSelector = ({ product }) => {
     if (!value.in_stock) input.setAttribute("disabled", "disabled");
     input.addEventListener("change", () => {
       selected.innerHTML = value.name;
+      image.src = value.images[0];
+      image.alt = value.name;
     });
   });
 

@@ -7,13 +7,13 @@
 
 @mixin scrollBar() {
   &::-webkit-scrollbar {
-    width: 0.25rem;
+    width: 4px;
     &-track {
-      border-radius: 0.5rem;
+      border-radius: 8px;
     }
     &-thumb {
       background: #0038ff;
-      border-radius: 0.5rem;
+      border-radius: 8px;
     }
   }
 }
@@ -168,6 +168,7 @@
     }
     &__step {
       display: none;
+      overflow-y: auto;
       &.active {
         display: flex;
       }
@@ -463,9 +464,10 @@
   }
   &__dropdown-selector {
     user-select: none;
-    border: 0.0625rem solid black;
-    border-radius: 5px;
-    padding: 8px;
+    border: 1px solid #d4d4d4;
+    background-color: white;
+    border-radius: 8px;
+    padding: 12px 8px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -503,8 +505,8 @@
     &__variants-wrapper {
       max-height: 0;
       border: 1px solid transparent;
-      border-top: 0rem;
-      border-bottom: 0rem;
+      border-top: 0px;
+      border-bottom: 0px;
       padding: 0 4px;
       overflow: hidden;
       position: absolute;
@@ -674,13 +676,13 @@
     transform: translateX(0);
   }
   25% {
-    transform: translateX(0.3125rem);
+    transform: translateX(5px);
   }
   50% {
-    transform: translateX(-0.3125rem);
+    transform: translateX(-5px);
   }
   75% {
-    transform: translateX(0.3125rem);
+    transform: translateX(5px);
   }
   100% {
     transform: translateX(0);
@@ -711,6 +713,7 @@
   padding: 0 20px;
   .cart__steps__step {
     display: flex !important;
+    overflow: unset;
     border-bottom: 1px solid #dcdcdc;
     padding-left: 0;
     padding-right: 0;

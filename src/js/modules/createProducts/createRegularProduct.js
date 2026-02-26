@@ -11,7 +11,7 @@ const createRegularProduct = ({ product, isBump }) => {
   image.src = currentValue.images[0];
   image.alt = currentValue.name;
   name.innerHTML = product.configs.name || product.name;
-  const [dropdown, inputs] = createDropdownSelector({ product });
+  const [dropdown, inputs] = createDropdownSelector({ product, image });
   desc.appendChild(dropdown);
   if (product.configs.newPrice) {
     oldPrice.innerHTML = product.price;
@@ -24,8 +24,6 @@ const createRegularProduct = ({ product, isBump }) => {
   inputs.forEach((input) => {
     const value = product.options[0].values.find((value) => input.value == value.id);
     input.addEventListener("change", () => {
-      image.src = value.images[0];
-      image.alt = value.name;
       currentValue = value;
       if (isAdded) {
         updateVariantValue(product, value);
