@@ -1,6 +1,8 @@
 import { addStaticProduct, getTotalValue, removeProduct, setTotalValue } from "../data.js";
+import getPrice from "../utils/getPrice.js";
 import createBumpButtons from "./createBumpButtons.js";
 import createProductCard from "./createProductCard.js";
+import handleRecurringDescription from "./handleRecurringDescription.js";
 
 const createStaticProduct = ({ product, isDiscounted = true, prodQuantity, isBump }) => {
   const { card, image, name, desc, oldPrice, newPrice, quantity } = createProductCard(product);
@@ -19,6 +21,7 @@ const createStaticProduct = ({ product, isDiscounted = true, prodQuantity, isBum
   }
   const actualQuantity = prodQuantity || product.configs.quantity || 1;
   if (product.configs.desc) desc.innerHTML = product.configs.desc;
+  handleRecurringDescription({ product, desc });
   if (actualQuantity > 1) quantity.innerHTML = actualQuantity;
   else quantity.style.display = "none";
   if (isDiscounted && !product.configs.notDiscounted) {

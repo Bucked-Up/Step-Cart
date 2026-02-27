@@ -13,6 +13,7 @@ const reset = () => {
   globalQuantity = 0;
   totalValue = 0;
 };
+const getProductConfigs = id => apiProducts.find(prod=>prod.id == id)?.configs
 const setCouponCode = (code) => (couponCode = code);
 const getCouponCode = () => couponCode;
 const setBumpCoupon = (code) => (bumpCode = code);
@@ -53,4 +54,4 @@ const setTotalValue = (value) => {
 };
 const setBumpProduct = (product) => (bumpProduct = product);
 const getBumpProduct = () => bumpProduct;
-export { setBumpCoupon, getBumpCoupon, setCouponCode, getCouponCode, reset, removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, getTotalValue, setTotalValue, setBumpProduct, getBumpProduct };
+export { getProductConfigs, setBumpCoupon, getBumpCoupon, setCouponCode, getCouponCode, reset, removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, getTotalValue, setTotalValue, setBumpProduct, getBumpProduct };

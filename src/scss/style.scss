@@ -372,7 +372,7 @@
             }
           }
         }
-        &:last-child{
+        &:last-child {
           margin-bottom: 0 !important;
         }
       }
@@ -604,6 +604,9 @@
       max-width: 65px;
     }
     &__texts {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
       width: 100%;
       font-size: 14px;
       line-height: 100%;
@@ -614,9 +617,18 @@
     }
     &__desc {
       color: #99a1af;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 400;
       line-height: 120%;
+      &__recurring {
+        color: #575b63;
+        display: inline-block;
+        margin-top: 2px;
+        line-height: 120%;
+        b{
+          font-weight: 900;
+        }
+      }
     }
     &__old-price {
       color: #99a1af;
@@ -709,7 +721,10 @@
 
 [inline-products] {
   font-family: Poppins;
-  &,*{line-height: 1;}
+  &,
+  * {
+    line-height: 1;
+  }
   padding: 0 20px;
   .cart__steps__step {
     display: flex !important;

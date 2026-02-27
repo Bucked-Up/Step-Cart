@@ -1,4 +1,4 @@
-import { getCouponCode, getProducts } from "./data.js";
+import { getCouponCode, getProductConfigs, getProducts } from "./data.js";
 import toggleLoading from "./toggleLoading.js";
 import getCookie from "./track/getCookie.js";
 import sendVibeLead from "./track/sendVibeLead.js";
@@ -12,8 +12,12 @@ const handlePurchase = ({ country, urlParams }) => {
   urlParams.set("source_url", location.href.split("?")[0]);
   let string = "";
   products.forEach((product, i) => {
+    const recurring = getProductConfigs(product.id)?.recurring
     string = string + `&products[${i}][id]=${product.id}&products[${i}][quantity]=${product.quantity}`;
-
+    if(recurring){
+      const selectedValue = document.querySelector(`[name="${product.id}-recurring"]:checked`).value;
+      string = string + `&products[${i}][product_recurring_id]=${selectedValue}`
+    }
     if (product.type === "static") return;
 
     const options = product.choice.split("/") || product.choice;

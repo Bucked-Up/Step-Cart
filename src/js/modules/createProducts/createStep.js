@@ -5,6 +5,7 @@ import createImageColorSelector from "./createImageColorSelector.js";
 import createProductCard from "./createProductCard.js";
 import createSizeSelectors from "./createSizeSelectors.js";
 import createTextSelector from "./createTextSelector.js";
+import handleRecurringDescription from "./handleRecurringDescription.js";
 import { setNewPrice, setOldPrice, updateVariantValue } from "./handleVariantValues.js";
 import isDependent from "./isDepentent.js";
 
@@ -63,6 +64,7 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
   cardImage.alt = firstAvailableValue.name;
   name.innerHTML = product.configs.name || product.name;
   desc.innerHTML = firstAvailableValue.name;
+  handleRecurringDescription({ product, desc, value: firstAvailableValue });
   if (product.configs.newPrice) {
     setOldPrice(product, oldPrice, firstAvailableValue.price);
     setNewPrice(product, newPrice, firstAvailableValue.price);
@@ -85,20 +87,19 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
 
   let selectors, inputs, dropdown;
 
-
-    switch (product.configs.selector) {
-      case "text":
-        [selectors, inputs] = createTextSelector({ product, image });
-        break;
-      case "images":
-      case "colors":
-        [selectors, inputs] = createImageColorSelector({ product, image });
-        break;
-      default:
-        if(isDependent(product)) [selectors, inputs] = createImageColorSelector({ product, image })
-        else [dropdown, inputs] = createDropdownSelector({ product, image });
-        break;
-    }
+  switch (product.configs.selector) {
+    case "text":
+      [selectors, inputs] = createTextSelector({ product, image });
+      break;
+    case "images":
+    case "colors":
+      [selectors, inputs] = createImageColorSelector({ product, image });
+      break;
+    default:
+      if (isDependent(product)) [selectors, inputs] = createImageColorSelector({ product, image });
+      else [dropdown, inputs] = createDropdownSelector({ product, image });
+      break;
+  }
   primaryInputs = inputs;
   const selectorsWrapper = document.createElement("div");
   selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
@@ -106,10 +107,10 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
     selectors.forEach((selector) => {
       selectorsWrapper.appendChild(selector);
     });
-  else if (dropdown){
+  else if (dropdown) {
     selectorsWrapper.appendChild(dropdown);
-    selectorsWrapper.removeAttribute("class")
-  } 
+    selectorsWrapper.removeAttribute("class");
+  }
   inputs.forEach((input) => {
     input.addEventListener("change", () => {
       const value = product.options[0].values.find((value) => value.id == input.value);
@@ -131,7 +132,9 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
           cardImage.src = currentPrimaryValue.images[0];
           cardImage.alt = currentPrimaryValue.name;
           name.innerHTML = product.configs.name || product.name;
-          desc.innerHTML = `${currentPrimaryValue.name}<br>${product.options[1].values.find((value) => value.id == currentSecondaryInput.value).name}`;
+          const value = product.options[1].values.find((value) => value.id == currentSecondaryInput.value);
+          desc.innerHTML = `${currentPrimaryValue.name}<br>${value.name}`;
+          handleRecurringDescription({ product, desc, value });
         }
       } else {
         addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}`, replace: true });
@@ -149,6 +152,7 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
         cardImage.alt = value.name;
         name.innerHTML = product.configs.name || product.name;
         desc.innerHTML = value.name;
+        handleRecurringDescription({ product, desc, value });
       }
     });
   });
@@ -194,6 +198,7 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
         cardImage.alt = currentPrimaryValue.name;
         name.innerHTML = product.configs.name || product.name;
         desc.innerHTML = `${currentPrimaryValue.name}<br>${value.name}`;
+        handleRecurringDescription({ product, desc, value });
       });
     });
   }
