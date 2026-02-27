@@ -108,6 +108,7 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
       selectorsWrapper.appendChild(selector);
     });
   else if (dropdown) {
+    inputs.find((input) => input.value == firstAvailableValue.id).checked = true;
     selectorsWrapper.appendChild(dropdown);
     selectorsWrapper.removeAttribute("class");
   }
