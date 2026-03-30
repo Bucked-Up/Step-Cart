@@ -8,7 +8,7 @@ import handleError from "./modules/handleError.js";
 import handlePurchase from "./modules/handlePurchase.js";
 import toggleLoading from "./modules/toggleLoading.js";
 
-const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) => {
+const stepCart = async ({ noCart, products, country, bump, buttonOptions, couponCode }) => {
   try {
     window.addEventListener("pageshow", function (event) {
       if (event.persisted) {
@@ -26,6 +26,17 @@ const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) 
       apiData.forEach((product) => (product.configs = products.find((el) => el.id == product.id)));
       setApiProducts(apiData);
       if (bump) setBumpCoupon(bump.couponCode);
+    };
+
+    const handleNoCart = (data) => {
+      data.forEach((product) => {
+        if (product.configs.variant) {
+          handleProductWithSetVariant({ product });
+        } else if (isStatic(product)) {
+          addStaticProduct({ product, quantity: product.configs.quantity || 1 });
+        }
+      });
+      handlePurchase({ country, urlParams });
     };
 
     const buttons = document.querySelectorAll("[cart-button]");
@@ -76,16 +87,8 @@ const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) 
             data.forEach((product) => (product.configs = products.find((el) => el.id == product.id)));
             setApiProducts(data);
             setCouponCode(buttonOptions[button.id].couponCode);
-            if (buttonOptions[button.id].noCart) {
-              data.forEach((product) => {
-                if (product.configs.variant) {
-                  handleProductWithSetVariant({ product });
-                }
-                else if (isStatic(product)) {
-                  addStaticProduct({ product, quantity: product.configs.quantity || 1 })
-                }
-              });
-              handlePurchase({ country, urlParams });
+            if (noCart || buttonOptions[button.id].noCart) {
+              handleNoCart(data);
               return;
             }
             if (bump) {
@@ -94,6 +97,10 @@ const stepCart = async ({ products, country, bump, buttonOptions, couponCode }) 
             }
             if (buttonOptions[button.id].bumpCoupon) setBumpCoupon(buttonOptions[button.id].bumpCoupon);
           } else initDefaultProducts();
+          if (noCart) {
+            handleNoCart(apiData);
+            return;
+          }
           createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity });
           if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
         }
