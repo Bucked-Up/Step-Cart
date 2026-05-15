@@ -7,11 +7,11 @@ const fetchProducts = async ({ country, products, bump }) => {
     // let url = `https://webhook-processor-production-4aa3.up.railway.app/webhook/dev?product_id=${product.id}`;
     if (country === "us-main") url = `https://www.buckedup.com/product/json/detail?product_id=${product.id}`;
     else if (country === "uk") url = `https://www.buckedup.co.uk/product/json/detail?product_id=${product.id}`;
-    else if (country && country !== "us") url = `https://${country}.buckedup.com/product/json/detail?product_id=${id}`;
-    // if (country && country === "us-main") url = `https://webhook-processor-production-4aa3.up.railway.app/webhook/dev-us-main?product_id=${id}`
+    else if (country && country !== "us") url = `https://${country}.buckedup.com/product/json/detail?product_id=${product.id}`;
+    // if (country && country === "us-main") url = `https://webhook-processor-production-4aa3.up.railway.app/webhook/dev-us-main?product_id=${product.id}`
     try {
       const response = await fetch(url);
-      if (response.status === 404) throw new Error(`Product ${id} Not Found.`);
+      if (response.status === 404) throw new Error(`Product ${product.id} Not Found.`);
       if (response.status == 500 || response.status == 400) throw new Error("Sorry, there was a problem.");
       const data = await response.json();
       data.product.configs = product;
@@ -23,7 +23,7 @@ const fetchProducts = async ({ country, products, bump }) => {
   if (bump) {
     const data = await fetchApi(bump);
     if (Object.keys(data.product.stock).every((key) => data.product.stock[key] <= 0)) {
-      console.error(`${item.product.name} Out of stock.`);
+      console.error(`${data.product.name} Out of stock.`);
       return;
     }
     data.product.configs.isBump = true;

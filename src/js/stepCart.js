@@ -39,6 +39,28 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
       handlePurchase({ country, urlParams });
     };
 
+    const resetCartUI = () => {
+      reset();
+      backToSteps.classList.remove("active");
+      stepsBack.classList.remove("active");
+      stepsWrapper.classList.remove("active");
+      stepsWrapper.querySelectorAll(".cart__steps__step").forEach((el) => el.remove());
+      getProductsWrapper().innerHTML = "";
+      getBumpWrapper()
+        .querySelectorAll(".cart__product")
+        .forEach((el) => el.remove());
+    };
+
+    const applyButtonOptions = (button) => {
+      const opts = buttonOptions[button.id];
+      const data = apiData.filter((el) => opts.products.find((toFind) => toFind.id == el.id));
+      data.forEach((product) => (product.configs = opts.products.find((el) => el.id == product.id)));
+      setApiProducts(data);
+      setCouponCode(opts.couponCode);
+      if (bump) setBumpCoupon(opts.bumpCoupon || bump.couponCode);
+      return data;
+    };
+
     const buttons = document.querySelectorAll("[cart-button]");
     if (bumpData && !Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
@@ -72,35 +94,23 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
             return;
           }
         } else {
-          reset();
-          backToSteps.classList.remove("active");
-          stepsBack.classList.remove("active");
-          stepsWrapper.classList.remove("active");
-          stepsWrapper.querySelectorAll(".cart__steps__step").forEach((el) => el.remove());
-          getProductsWrapper().innerHTML = "";
-          getBumpWrapper()
-            .querySelectorAll(".cart__product")
-            .forEach((el) => el.remove());
-          if (buttonOptions && buttonOptions[button.id]) {
-            const products = buttonOptions[button.id].products;
-            const data = apiData.filter((el) => products.find((toFind) => toFind.id == el.id));
-            data.forEach((product) => (product.configs = products.find((el) => el.id == product.id)));
-            setApiProducts(data);
-            setCouponCode(buttonOptions[button.id].couponCode);
-            if (noCart || buttonOptions[button.id].noCart) {
-              handleNoCart(data);
-              return;
-            }
-            if (bump) {
-              if (buttonOptions[button.id].bumpCoupon) setBumpCoupon(buttonOptions[button.id].bumpCoupon);
-              else setBumpCoupon(bump.couponCode);
-            }
-            if (buttonOptions[button.id].bumpCoupon) setBumpCoupon(buttonOptions[button.id].bumpCoupon);
-          } else initDefaultProducts();
-          if (noCart) {
-            handleNoCart(apiData);
+          resetCartUI();
+
+          const hasButtonOptions = buttonOptions && buttonOptions[button.id];
+          let data;
+          if (hasButtonOptions) {
+            data = applyButtonOptions(button);
+          } else {
+            initDefaultProducts();
+            data = apiData;
+          }
+
+          const skipCart = noCart || (hasButtonOptions && buttonOptions[button.id].noCart);
+          if (skipCart) {
+            handleNoCart(data);
             return;
           }
+
           createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity });
           if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
         }
