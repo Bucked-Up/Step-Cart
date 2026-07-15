@@ -9,11 +9,13 @@ let couponCode;
 let bumpCode;
 
 const reset = () => {
+  console.log("Resetting", totalValue);
   products = [];
-  globalQuantity = 0;
-  totalValue = 0;
+  setGlobalQuantity(0);
+  setTotalValue(0);
+  console.log("Resetted", totalValue);
 };
-const getProductConfigs = id => apiProducts.find(prod=>prod.id == id)?.configs
+const getProductConfigs = (id) => apiProducts.find((prod) => prod.id == id)?.configs;
 const setCouponCode = (code) => (couponCode = code);
 const getCouponCode = () => couponCode;
 const setBumpCoupon = (code) => (bumpCode = code);
@@ -49,6 +51,7 @@ const addRegularProduct = ({ product, choice, replace }) => {
 const getProducts = () => products;
 const getTotalValue = () => totalValue;
 const setTotalValue = (value) => {
+  console.log("Global Total Value: ", value);
   totalValue = value;
   document.querySelector("[cart-total]").innerHTML = `$${value.toFixed(2)}`;
 };
