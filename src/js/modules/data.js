@@ -2,6 +2,7 @@ let apiProducts = [];
 let products = [];
 let globalQuantity = 0;
 let totalValue = 0;
+let subtotal = 0;
 let bumpProduct;
 let productsWrapper;
 let bumpWrapper;
@@ -13,6 +14,7 @@ const reset = () => {
   products = [];
   setGlobalQuantity(0);
   setTotalValue(0);
+  setSubtotal(0);
   console.log("Resetted", totalValue);
 };
 const getProductConfigs = (id) => apiProducts.find((prod) => prod.id == id)?.configs;
@@ -35,6 +37,10 @@ const setGlobalQuantity = (quantity) => {
 const getGlobalQuantity = () => globalQuantity;
 const addStaticProduct = ({ product, quantity = 1 }) => products.push({ id: product.id, type: "static", quantity });
 const removeProduct = ({ product }) => (products = products.filter((el) => el.id !== product.id));
+const setProductQuantity = ({ id, quantity }) => {
+  const entry = products.find((el) => el.id === id);
+  if (entry) entry.quantity = quantity;
+};
 const addRegularProduct = ({ product, choice, replace }) => {
   if (replace) {
     products = products.filter((el) => el.id !== product.id);
@@ -54,7 +60,21 @@ const setTotalValue = (value) => {
   console.log("Global Total Value: ", value);
   totalValue = value;
   document.querySelector("[cart-total]").innerHTML = `$${value.toFixed(2)}`;
+  refreshDiscount();
+};
+const getSubtotal = () => subtotal;
+const setSubtotal = (value) => {
+  subtotal = value;
+  const el = document.querySelector("[cart-subtotal]");
+  if (el) el.innerHTML = `$${value.toFixed(2)}`;
+  refreshDiscount();
+};
+const refreshDiscount = () => {
+  const el = document.querySelector("[cart-discount]");
+  if (!el) return;
+  const savings = Math.max(0, subtotal - totalValue);
+  el.innerHTML = `-$${savings.toFixed(2)}`;
 };
 const setBumpProduct = (product) => (bumpProduct = product);
 const getBumpProduct = () => bumpProduct;
-export { getProductConfigs, setBumpCoupon, getBumpCoupon, setCouponCode, getCouponCode, reset, removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, getTotalValue, setTotalValue, setBumpProduct, getBumpProduct };
+export { getProductConfigs, setBumpCoupon, getBumpCoupon, setCouponCode, getCouponCode, reset, removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, setProductQuantity, getTotalValue, setTotalValue, getSubtotal, setSubtotal, setBumpProduct, getBumpProduct };

@@ -3,8 +3,8 @@ import sendViewedProducts from "./track/sendViewedProducts.js";
 const fetchProducts = async ({ country, products, bump }) => {
   if (!products && !bump) return;
   const fetchApi = async (product) => {
-    let url = `https://funnels.buckedup.com/product/json/detail?product_id=${product.id}`;
-    // let url = `https://webhook-processor-production-4aa3.up.railway.app/webhook/dev?product_id=${product.id}`;
+    // let url = `https://funnels.buckedup.com/product/json/detail?product_id=${product.id}`;
+    let url = `https://webhook-processor-production-4aa3.up.railway.app/webhook/dev?product_id=${product.id}`;
     if (country === "us-main") url = `https://www.buckedup.com/product/json/detail?product_id=${product.id}`;
     else if (country === "uk") url = `https://www.buckedup.co.uk/product/json/detail?product_id=${product.id}`;
     else if (country && country !== "us") url = `https://${country}.buckedup.com/product/json/detail?product_id=${product.id}`;

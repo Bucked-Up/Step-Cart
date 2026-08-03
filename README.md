@@ -42,8 +42,29 @@ Array of product configurations.
 | `variant` | number | Pre-selected variant ID (skips variant selection) |
 | `recurring` | object | Enables subscription option. Shape: `{ percent: number }` — the discount % shown next to the recurring line. Requires radio inputs named `{productId}-recurring` on the page for the user to pick the frequency |
 | `notDiscounted` | boolean | Disable discount display for this product |
+| `dynamicQtty` | object | Renders a `−` / input / `+` stepper on the card. Shape: `{ maxQtty: number, qttyTexts?: { [qty: string]: string } }` — `maxQtty` is the upper bound (min is always 1); optional `qttyTexts` reveals a progress bar at the top of the cart, filling from `qty/maxQtty` with the text pulled by current quantity (`qttyTexts["2"]` at qty 2). The bar turns green whenever the current quantity matches a bonus threshold (any `isBonus.parentQtty` that points at this product). See below |
+| `attachQtty` | array | List of product IDs whose quantity should mirror this product's. Set on the product that has `dynamicQtty`. See below |
+| `isBonus` | object | Hides this product until a parent product's quantity crosses a threshold. Shape: `{ parentProd: number, parentQtty: number }` — reveals the card (and includes it at checkout) once the parent's qty is `≥ parentQtty`. See below |
 
 **`newPrice.affect` example** — apply the discount to only part of the quantity. `{ id: 924, quantity: 3, newPrice: { value: "$20", affect: 2 } }` renders as one full-price card (qty 1) and one discounted card (qty 2 at $20 each).
+
+**`dynamicQtty` / `attachQtty` / `isBonus` example** — the three options are designed to work together to build bundle offers that scale with the user's chosen quantity:
+
+```javascript
+products: [
+  { id: 1275, dynamicQtty: { maxQtty: 3, qttyTexts: { "1": "1 pack", "2": "Free shirt unlocked!", "3": "Free shirt + shaker!" } }, attachQtty: [123] },
+  { id: 123, newPrice: { value: "FREE" } },
+  { id: 201, variant: 11951, newPrice: { value: "FREE" }, isBonus: { parentProd: 1275, parentQtty: 2 } },
+  { id: 924, variant: 14003, newPrice: { value: "FREE" }, isBonus: {parentProd: 1275, parentQtty: 3 } }
+]
+```
+
+Behavior with the config above: product `1275` gets a stepper (1–3). When the user changes it, product `123` follows the same quantity (via `attachQtty`), product `201` appears once qty ≥ 2, and product `924` appears once qty = 3. Hidden bonuses are excluded from the checkout URL — only currently-visible ones ship. Notes:
+
+- `dynamicQtty` only applies to products rendered as a static card — i.e. products with no options, `type: "static"`, or a pre-selected `variant`.
+- Products listed in `attachQtty` do not need `dynamicQtty` themselves; their qty is driven by the parent.
+- `isBonus` products with a pre-selected `variant` are added to / removed from the cart as the threshold is crossed.
+- When `qttyTexts` is set, a progress bar renders at the top of the cart (below the header, above the products). Its fill width tracks `currentQty / maxQtty`, its label is `qttyTexts[String(currentQty)]`, and the whole bar (track background + fill) turns green when `currentQty` equals any bonus threshold tied to this product — so users get a visual "unlocked!" confirmation.
 
 ### `couponCode` (string)
 
@@ -116,6 +137,10 @@ buttonOptions: {
 | `noCart` | boolean | Skip cart UI, go directly to checkout |
 
 Every `cart-button` click clears and rebuilds the cart from that button's config (or the global config if the button has no entry), so per-button `products`/`couponCode` never leak between clicks.
+
+### `showFullPricing` (boolean)
+
+Global option. When `true`, renders **Subtotal** and **Discount** rows in the cart footer directly above the total. Subtotal is the sum of each product's `basePrice × quantity` before any `newPrice` override / FREE / bonus; Discount is `subtotal − total` (shown in green). Defaults to `false`, which keeps the original UI (total only). Kept in sync automatically as quantities change, bonuses toggle, and bumps flip prices.
 
 ### `noCart` (boolean)
 

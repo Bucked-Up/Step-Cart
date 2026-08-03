@@ -30,7 +30,7 @@ const createProductCard = (product, isBump) => {
   cardContent.appendChild(texts);
   cardContent.appendChild(prices);
   imageWrapper.appendChild(image);
-  if (product.configs.quantity) imageWrapper.appendChild(quantity);
+  imageWrapper.appendChild(quantity);
   if (!isBump) texts.appendChild(name);
   texts.appendChild(desc);
   prices.appendChild(newPrice);

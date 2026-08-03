@@ -8,7 +8,7 @@ import handleError from "./modules/handleError.js";
 import handlePurchase from "./modules/handlePurchase.js";
 import toggleLoading from "./modules/toggleLoading.js";
 
-const stepCart = async ({ noCart, products, country, bump, buttonOptions, couponCode }) => {
+const stepCart = async ({ noCart, products, country, bump, buttonOptions, couponCode, showFullPricing }) => {
   try {
     window.addEventListener("pageshow", function (event) {
       if (event.persisted) {
@@ -64,7 +64,7 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
     const buttons = document.querySelectorAll("[cart-button]");
     if (bumpData && !Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
-    let { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title, country, urlParams });
+    let { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title, country, urlParams, showFullPricing });
     const inlineProducts = document.querySelector("[inline-products]");
 
     if (inlineProducts) {
