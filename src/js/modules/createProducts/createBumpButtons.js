@@ -36,7 +36,7 @@ const createBumpButtons = ({ product, card }) => {
         const priceEl = document.querySelector(`.cart__product__new-price[prod-id="${product.id}"]`);
         if (newPrice.newPrice == "FREE") priceEl.style.color = "#D2232A";
         priceEl.innerHTML = newPrice.newPrice;
-        const productPrice = getPrice(product.configs.newPrice.value || product.price);
+        const productPrice = getPrice(product.configs.newPrice?.value || product.price);
         productsPrices.push({ id: product.id, price: productPrice });
         newTotal = newTotal - (newPrice.newPrice == "FREE" ? productPrice : productPrice - getPrice(newPrice.newPrice));
       });
