@@ -1,4 +1,5 @@
 import { addRegularProduct, addStaticProduct, getApiProducts, getBumpProduct, getBumpWrapper, getGlobalQuantity, getProductsWrapper, getSubtotal, getTotalValue, removeProduct, setGlobalQuantity, setSubtotal, setTotalValue } from "../data.js";
+import getPrice from "../utils/getPrice.js";
 import createPlaceholderProduct from "./createPlaceholderProduct.js";
 import createQuantitySelector from "./createQuantitySelector.js";
 import createRegularProduct from "./createRegularProduct.js";
@@ -60,8 +61,56 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
           });
         }
       }
+    } else if (!isBump && product.configs.isBonus) {
+      const control = createRegularProduct({ product });
+      wrapper.appendChild(control.card);
+      const basePrice = Number(product.price.split("$")[1]);
+      const showDiscounted = !product.configs.notDiscounted && !!product.configs.newPrice;
+      const isFree = showDiscounted && product.configs.newPrice?.value === "FREE";
+      const initialQty = product.configs.quantity || 1;
+      const priceContribution = (variantPrice, qty) => {
+        if (qty <= 0) return 0;
+        if (isFree) return variantPrice * qty;
+        if (showDiscounted) return (getPrice(product.configs.newPrice.value) + variantPrice) * qty;
+        return (basePrice + variantPrice) * qty;
+      };
+      const priceSubtotal = (variantPrice, qty) => (qty <= 0 ? 0 : (basePrice + variantPrice) * qty);
+      const contributionFor = (qty) => priceContribution(control.getVariantPrice(), qty);
+      const subtotalFor = (qty) => priceSubtotal(control.getVariantPrice(), qty);
+
+      addRegularProduct({ product, choice: control.getChoice() });
+      setTotalValue(getTotalValue() + contributionFor(initialQty));
+      setSubtotal(getSubtotal() + subtotalFor(initialQty));
+
+      const entry = {
+        card: control.card,
+        recomputeCard: () => {},
+        contributionFor,
+        subtotalFor,
+        initialQty,
+        product,
+        kind: "variant",
+        hidden: false,
+      };
+      Object.defineProperty(entry, "choice", { get: () => control.getChoice() });
+      cardMap.set(Number(product.id), entry);
+
+      let lastVariantPrice = control.getVariantPrice();
+      control.subscribe(({ choice }) => {
+        const newVariantPrice = control.getVariantPrice();
+        if (!entry.hidden) {
+          const prevContrib = priceContribution(lastVariantPrice, initialQty);
+          const newContrib = priceContribution(newVariantPrice, initialQty);
+          const prevSub = priceSubtotal(lastVariantPrice, initialQty);
+          const newSub = priceSubtotal(newVariantPrice, initialQty);
+          if (newContrib !== prevContrib) setTotalValue(getTotalValue() + (newContrib - prevContrib));
+          if (newSub !== prevSub) setSubtotal(getSubtotal() + (newSub - prevSub));
+          addRegularProduct({ product, choice, replace: true });
+        }
+        lastVariantPrice = newVariantPrice;
+      });
     } else if (isBump) {
-      wrapper.appendChild(createRegularProduct({ product, isBump }));
+      wrapper.appendChild(createRegularProduct({ product, isBump }).card);
     } else {
       const [step, button] = createStep({ product, stepsWrapper });
       steps.push(step);

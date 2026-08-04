@@ -44,7 +44,7 @@ Array of product configurations.
 | `notDiscounted` | boolean | Disable discount display for this product |
 | `dynamicQtty` | object | Renders a `−` / input / `+` stepper on the card. Shape: `{ maxQtty: number, qttyTexts?: { [qty: string]: string } }` — `maxQtty` is the upper bound (min is always 1); optional `qttyTexts` reveals a progress bar at the top of the cart, filling from `qty/maxQtty` with the text pulled by current quantity (`qttyTexts["2"]` at qty 2). The bar turns green whenever the current quantity matches a bonus threshold (any `isBonus.parentQtty` that points at this product). See below |
 | `attachQtty` | array | List of product IDs whose quantity should mirror this product's. Set on the product that has `dynamicQtty`. See below |
-| `isBonus` | object | Hides this product until a parent product's quantity crosses a threshold. Shape: `{ parentProd: number, parentQtty: number }` — reveals the card (and includes it at checkout) once the parent's qty is `≥ parentQtty`. Combine with the global `showBonus` flag to render locked bonuses as a grayed-out preview instead of hiding them. See below |
+| `isBonus` | object | Hides this product until a parent product's quantity crosses a threshold. Shape: `{ parentProd: number, parentQtty: number }` — reveals the card (and includes it at checkout) once the parent's qty is `≥ parentQtty`. Works with either a pre-selected `variant` (renders as a static card) or a variant product without `variant` (renders as a bonus card with an inline dropdown, same UI as the order bump — single-option variants only). Combine with the global `showBonus` flag to render locked bonuses as a grayed-out preview instead of hiding them. See below |
 
 **`newPrice.affect` example** — apply the discount to only part of the quantity. `{ id: 924, quantity: 3, newPrice: { value: "$20", affect: 2 } }` renders as one full-price card (qty 1) and one discounted card (qty 2 at $20 each).
 
@@ -63,7 +63,7 @@ Behavior with the config above: product `1275` gets a stepper (1–3). When the 
 
 - `dynamicQtty` only applies to products rendered as a static card — i.e. products with no options, `type: "static"`, or a pre-selected `variant`.
 - Products listed in `attachQtty` do not need `dynamicQtty` themselves; their qty is driven by the parent.
-- `isBonus` products with a pre-selected `variant` are added to / removed from the cart as the threshold is crossed.
+- `isBonus` products are added to / removed from the cart as the threshold is crossed. Products with a pre-selected `variant` render as a static card; products with variants but no `variant` render as a card with an inline dropdown selector (single-option variants only, matching the order bump) so shoppers can pick the variant they'll receive.
 - When `qttyTexts` is set, a progress bar renders at the top of the cart (below the header, above the products). Its fill width tracks `currentQty / maxQtty`, its label is `qttyTexts[String(currentQty)]`, and the whole bar (track background + fill) turns green when `currentQty` equals any bonus threshold tied to this product — so users get a visual "unlocked!" confirmation.
 
 ### `couponCode` (string)
