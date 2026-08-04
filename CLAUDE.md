@@ -20,6 +20,8 @@ There is no lint, no test runner, and no CSS build step in `package.json`. `src/
 
 The public API is a single function `window.stepCart({ products, couponCode, country, bump, buttonOptions, noCart })` — full parameter reference lives in `README.md`. Consumers include `step-cart.min.js` and the CSS on their page and call `stepCart(...)` once.
 
+Always update `README.md` when the public API changes: a new/renamed/removed `stepCart(...)` option, a new/renamed/removed product-config key (like `isBonus`, `dynamicQtty`, `attachQtty`), or a change to how any of those behave from the consumer's point of view. Add or update the row in the relevant properties table and, when the behavior is non-obvious, its dedicated section. `README.md` is the shipped reference — internal-only refactors do not need README changes.
+
 ## Architecture
 
 Entry point `src/js/stepCart.js` orchestrates everything in a fixed sequence:

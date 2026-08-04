@@ -44,7 +44,7 @@ Array of product configurations.
 | `notDiscounted` | boolean | Disable discount display for this product |
 | `dynamicQtty` | object | Renders a `−` / input / `+` stepper on the card. Shape: `{ maxQtty: number, qttyTexts?: { [qty: string]: string } }` — `maxQtty` is the upper bound (min is always 1); optional `qttyTexts` reveals a progress bar at the top of the cart, filling from `qty/maxQtty` with the text pulled by current quantity (`qttyTexts["2"]` at qty 2). The bar turns green whenever the current quantity matches a bonus threshold (any `isBonus.parentQtty` that points at this product). See below |
 | `attachQtty` | array | List of product IDs whose quantity should mirror this product's. Set on the product that has `dynamicQtty`. See below |
-| `isBonus` | object | Hides this product until a parent product's quantity crosses a threshold. Shape: `{ parentProd: number, parentQtty: number }` — reveals the card (and includes it at checkout) once the parent's qty is `≥ parentQtty`. See below |
+| `isBonus` | object | Hides this product until a parent product's quantity crosses a threshold. Shape: `{ parentProd: number, parentQtty: number }` — reveals the card (and includes it at checkout) once the parent's qty is `≥ parentQtty`. Combine with the global `showBonus` flag to render locked bonuses as a grayed-out preview instead of hiding them. See below |
 
 **`newPrice.affect` example** — apply the discount to only part of the quantity. `{ id: 924, quantity: 3, newPrice: { value: "$20", affect: 2 } }` renders as one full-price card (qty 1) and one discounted card (qty 2 at $20 each).
 
@@ -141,6 +141,10 @@ Every `cart-button` click clears and rebuilds the cart from that button's config
 ### `showFullPricing` (boolean)
 
 Global option. When `true`, renders **Subtotal** and **Discount** rows in the cart footer directly above the total. Subtotal is the sum of each product's `basePrice × quantity` before any `newPrice` override / FREE / bonus; Discount is `subtotal − total` (shown in green). Defaults to `false`, which keeps the original UI (total only). Kept in sync automatically as quantities change, bonuses toggle, and bumps flip prices.
+
+### `showBonus` (boolean)
+
+Global option. When `true`, `isBonus` products are rendered in the cart from the start in a **locked** state — visible but grayed out (`opacity` + `grayscale`, non-interactive) — so shoppers can see what they'd get before hitting the threshold. Once the parent product's qty reaches `parentQtty`, the bonus un-grays and joins the totals / qty badge / checkout payload. Defaults to `false`, which keeps the original behavior (bonuses fully hidden until unlocked). Locked bonuses are always excluded from totals and checkout regardless of this flag.
 
 ### `noCart` (boolean)
 

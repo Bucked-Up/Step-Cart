@@ -8,7 +8,7 @@ import handleError from "./modules/handleError.js";
 import handlePurchase from "./modules/handlePurchase.js";
 import toggleLoading from "./modules/toggleLoading.js";
 
-const stepCart = async ({ noCart, products, country, bump, buttonOptions, couponCode, showFullPricing }) => {
+const stepCart = async ({ noCart, products, country, bump, buttonOptions, couponCode, showFullPricing, showBonus }) => {
   try {
     window.addEventListener("pageshow", function (event) {
       if (event.persisted) {
@@ -72,7 +72,7 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
       backToSteps.remove();
       stepsWrapper = inlineProducts;
       initDefaultProducts();
-      createProducts({ stepsWrapper, stepsBack, backToSteps, cartQuantity });
+      createProducts({ stepsWrapper, stepsBack, backToSteps, cartQuantity, showBonus });
       if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
     }
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
@@ -111,7 +111,7 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
             return;
           }
 
-          createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity });
+          createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity, showBonus });
           if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
         }
         cartWrapper.classList.add("active");

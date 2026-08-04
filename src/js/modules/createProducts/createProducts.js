@@ -7,7 +7,7 @@ import createStep from "./createStep.js";
 import handleProductWithSetVariant from "./handleProductWithSetVariant.js";
 import isStatic from "./isStatic.js";
 
-const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump }) => {
+const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump, showBonus }) => {
   const wrapper = isBump ? getBumpWrapper() : getProductsWrapper();
   const products = isBump ? [getBumpProduct()] : getApiProducts();
   const steps = [];
@@ -70,7 +70,7 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
       backToSteps.addEventListener("click", () => stepsWrapper.classList.add("active"));
     }
   });
-  if (!isBump) wireDynamicFeatures({ products, cardMap });
+  if (!isBump) wireDynamicFeatures({ products, cardMap, showBonus });
   if (steps.length > 0) {
     stepsWrapper.classList.add("active");
     if (stepsText) stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
@@ -104,10 +104,14 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
   }
 };
 
-const hideBonus = (entry) => {
+const lockBonus = (entry, { showBonus }) => {
   if (entry.hidden) return;
   entry.hidden = true;
-  entry.card.style.display = "none";
+  if (showBonus) {
+    entry.card.classList.add("cart__product--locked");
+  } else {
+    entry.card.style.display = "none";
+  }
   const contribution = entry.contributionFor(entry.initialQty);
   if (contribution !== 0) setTotalValue(getTotalValue() - contribution);
   const subtotalContribution = entry.subtotalFor(entry.initialQty);
@@ -116,10 +120,14 @@ const hideBonus = (entry) => {
   removeProduct({ product: entry.product });
 };
 
-const showBonus = (entry) => {
+const unlockBonus = (entry, { showBonus }) => {
   if (!entry.hidden) return;
   entry.hidden = false;
-  entry.card.style.display = "";
+  if (showBonus) {
+    entry.card.classList.remove("cart__product--locked");
+  } else {
+    entry.card.style.display = "";
+  }
   const contribution = entry.contributionFor(entry.initialQty);
   if (contribution !== 0) setTotalValue(getTotalValue() + contribution);
   const subtotalContribution = entry.subtotalFor(entry.initialQty);
@@ -132,7 +140,7 @@ const showBonus = (entry) => {
   }
 };
 
-const wireDynamicFeatures = ({ products, cardMap }) => {
+const wireDynamicFeatures = ({ products, cardMap, showBonus }) => {
   const parentQtyFor = (parentId) => {
     const parent = products.find((p) => p.id == parentId);
     if (!parent) return 0;
@@ -144,7 +152,7 @@ const wireDynamicFeatures = ({ products, cardMap }) => {
     if (!bonusConfig) return;
     const entry = cardMap.get(Number(product.id));
     if (!entry) return;
-    if (parentQtyFor(bonusConfig.parentProd) < bonusConfig.parentQtty) hideBonus(entry);
+    if (parentQtyFor(bonusConfig.parentProd) < bonusConfig.parentQtty) lockBonus(entry, { showBonus });
   });
 
   products.forEach((product) => {
@@ -195,8 +203,8 @@ const wireDynamicFeatures = ({ products, cardMap }) => {
           if (!bc || bc.parentProd != product.id) return;
           const bonusEntry = cardMap.get(Number(otherProduct.id));
           if (!bonusEntry) return;
-          if (newQty >= bc.parentQtty) showBonus(bonusEntry);
-          else hideBonus(bonusEntry);
+          if (newQty >= bc.parentQtty) unlockBonus(bonusEntry, { showBonus });
+          else lockBonus(bonusEntry, { showBonus });
         });
         updateProgress(newQty);
       },
