@@ -167,6 +167,7 @@ const wireDynamicFeatures = ({ products, cardMap, showBonus }) => {
       const progressEl = document.querySelector("[cart-progress]");
       const fillEl = document.querySelector("[cart-progress-fill]");
       const textEl = document.querySelector("[cart-progress-text]");
+      const addedEl = document.querySelector("[cart-progress-added]");
       if (progressEl && fillEl && textEl) {
         const goals = new Set(
           products
@@ -174,11 +175,21 @@ const wireDynamicFeatures = ({ products, cardMap, showBonus }) => {
             .filter((bc) => bc && bc.parentProd == product.id)
             .map((bc) => Number(bc.parentQtty)),
         );
+        const bonusList = products
+          .filter((p) => p.configs.isBonus && p.configs.isBonus.parentProd == product.id)
+          .map((p) => ({ name: p.configs.name || p.name, parentQtty: Number(p.configs.isBonus.parentQtty) }))
+          .sort((a, b) => a.parentQtty - b.parentQtty);
         progressEl.style.display = "";
         updateProgress = (qty) => {
           fillEl.style.width = `${Math.min(100, (qty / dyn.maxQtty) * 100)}%`;
           textEl.innerHTML = dyn.qttyTexts[String(qty)] || "";
           progressEl.classList.toggle("cart__progress--met", goals.has(qty));
+          if (addedEl) {
+            addedEl.innerHTML = bonusList
+              .filter((b) => qty >= b.parentQtty)
+              .map((b) => `<p><b>${b.name}</b> added</p>`)
+              .join("");
+          }
         };
         updateProgress(initialQty);
       }
