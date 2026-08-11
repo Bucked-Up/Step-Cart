@@ -72,7 +72,7 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
       backToSteps.remove();
       stepsWrapper = inlineProducts;
       initDefaultProducts();
-      createProducts({ stepsWrapper, stepsBack, backToSteps, cartQuantity, showBonus });
+      createProducts({ stepsWrapper, stepsBack, backToSteps, cartQuantity, showBonus, bump });
       if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
     }
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
@@ -111,8 +111,8 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
             return;
           }
 
-          createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity, showBonus });
-          if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
+          createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity, showBonus, bump });
+          if (bump?.product && getBumpProduct() && !bump.isStep) createProducts({ cartQuantity, isBump: true });
         }
         cartWrapper.classList.add("active");
         document.body.style.overflow = "hidden";

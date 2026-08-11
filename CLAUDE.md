@@ -55,6 +55,10 @@ Entry point `src/js/stepCart.js` orchestrates everything in a fixed sequence:
 
 `bump.product.changePrices` rewrites the displayed price of *other* products already in the cart while the bump is added (implemented in `createBumpButtons`). This mutates displayed prices only — the underlying cart lines still carry their own IDs — but the total is recomputed. On remove, everything reverses (including swapping the coupon back from `bump.couponCode` / per-button `bumpCoupon`).
 
+### Tracking side-effects
+
+Two calls fire from the flow, both under `src/js/modules/track/`: `sendViewedProducts` runs at the end of `fetchProducts` (once per cart open, with the API data), and `sendVibeLead` runs inside `handlePurchase` right before the checkout redirect. Both are fire-and-forget — treat them as observable side-effects when refactoring those modules.
+
 ### Loading + errors
 
 `toggleLoading` adds/removes a `loading` class on `<body>` and locks scroll — it is toggled once at start and once at end of `stepCart`, and again around `handlePurchase`. A `pageshow` listener clears it on bfcache restores so a back-navigated page isn't stuck loading. Any thrown error in the top-level flow is caught and passed to `handleError`.

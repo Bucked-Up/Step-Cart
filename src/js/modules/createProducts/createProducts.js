@@ -1,5 +1,6 @@
 import { addRegularProduct, addStaticProduct, getApiProducts, getBumpProduct, getBumpWrapper, getGlobalQuantity, getProductsWrapper, getSubtotal, getTotalValue, removeProduct, setGlobalQuantity, setSubtotal, setTotalValue } from "../data.js";
 import getPrice from "../utils/getPrice.js";
+import createBumpStep from "./createBumpStep.js";
 import createPlaceholderProduct from "./createPlaceholderProduct.js";
 import createQuantitySelector from "./createQuantitySelector.js";
 import createRegularProduct from "./createRegularProduct.js";
@@ -8,7 +9,7 @@ import createStep from "./createStep.js";
 import handleProductWithSetVariant from "./handleProductWithSetVariant.js";
 import isStatic from "./isStatic.js";
 
-const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump, showBonus }) => {
+const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump, showBonus, bump }) => {
   const wrapper = isBump ? getBumpWrapper() : getProductsWrapper();
   const products = isBump ? [getBumpProduct()] : getApiProducts();
   const steps = [];
@@ -120,6 +121,13 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
     }
   });
   if (!isBump) wireDynamicFeatures({ products, cardMap, showBonus });
+  let bumpStep = null;
+  if (!isBump && bump?.isStep && getBumpProduct() && !stepsWrapper.hasAttribute("inline-products")) {
+    bumpStep = createBumpStep({ product: getBumpProduct(), stepsWrapper });
+    steps.push(bumpStep.step);
+    backToSteps.classList.add("active");
+    backToSteps.addEventListener("click", () => stepsWrapper.classList.add("active"));
+  }
   if (steps.length > 0) {
     stepsWrapper.classList.add("active");
     if (stepsText) stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
@@ -132,24 +140,35 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
       if (stepsText) stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
       if (currentStep === 0) stepsBack.classList.remove("active");
     });
-    stepButtons.forEach((button, i) => {
+    const advance = () => {
+      if (currentStep === steps.length - 1) {
+        stepsWrapper.classList.remove("active");
+        return;
+      }
+      steps[currentStep].classList.remove("active");
+      stepsBack.classList.add("active");
+      currentStep++;
+      if (stepsText) stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
+      steps[currentStep].classList.add("active");
+    };
+    const wireAdvance = (button, { allowInvalid = false, before } = {}) => {
       button.addEventListener("click", () => {
-        const invalidSelector = steps[currentStep].querySelector("[invalid]");
-        if (invalidSelector) {
-          invalidSelector.classList.add("invalid");
-          return;
+        if (!allowInvalid) {
+          const invalidSelector = steps[currentStep].querySelector("[invalid]");
+          if (invalidSelector) {
+            invalidSelector.classList.add("invalid");
+            return;
+          }
         }
-        if (i === steps.length - 1) {
-          stepsWrapper.classList.remove("active");
-          return;
-        }
-        steps[currentStep].classList.remove("active");
-        stepsBack.classList.add("active");
-        currentStep++;
-        if (stepsText) stepsText.innerHTML = `Step ${currentStep + 1} of ${steps.length}`;
-        steps[currentStep].classList.add("active");
+        if (before) before();
+        advance();
       });
-    });
+    };
+    stepButtons.forEach((button) => wireAdvance(button));
+    if (bumpStep) {
+      wireAdvance(bumpStep.addButton, { before: bumpStep.apply });
+      wireAdvance(bumpStep.skipButton, { allowInvalid: true, before: bumpStep.revert });
+    }
   }
 };
 

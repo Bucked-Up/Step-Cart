@@ -106,8 +106,11 @@ bump: {
 | `product.changePrices` | array | Optional list of `{ id, newPrice }`. Each `id` must reference a product in the top-level `products` array. `newPrice` is a string like `"$19.99"` or the literal `"FREE"` |
 | `title` | string | Heading shown above the bump card (defaults to "You may also like:") |
 | `couponCode` | string | Coupon applied while the bump is added; reverts on remove. Per-button `bumpCoupon` overrides this |
+| `isStep` | boolean | When `true`, renders the bump as the last wizard step (image + `ADD TO CART` + `SKIP`) instead of the classic card in the bumps wrapper. Supports both static and variant bumps. Ignored in `inline-products` mode (falls back to the classic card) |
 
 **Behavior:** on ADD the coupon swaps to the bump coupon, the bump card moves into the cart products, each `changePrices` entry rewrites the matching product's displayed price, and the total is recalculated. Clicking ADDED TO CART reverses everything. Bumps that are out of stock are skipped automatically.
+
+With `isStep: true`, the bump becomes the final wizard step. `ADD TO CART` applies the same coupon/price/total mutations described above and then advances (closing the wizard). `SKIP` advances without adding — and reverses the bump if it was applied on a previous visit (e.g. the shopper stepped back and forward again).
 
 ### `buttonOptions` (object)
 
