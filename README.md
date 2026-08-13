@@ -104,7 +104,7 @@ bump: {
 | `product.id` | number | Bump product ID (required) |
 | `product.newPrice` | object | `{ value: "$9.99" }` — required; used as the amount added to the total |
 | `product.changePrices` | array | Optional list of `{ id, newPrice }`. Each `id` must reference a product in the top-level `products` array. `newPrice` is a string like `"$19.99"` or the literal `"FREE"` |
-| `title` | string | Heading shown above the bump card (defaults to "You may also like:") |
+| `title` | string | Heading text. On classic bumps it's shown above the bump card (defaults to "You may also like:"). On `isStep` bumps it's the red headline above the bump step image (defaults to "UPGRADE YOUR ORDER!") |
 | `couponCode` | string | Coupon applied while the bump is added; reverts on remove. Per-button `bumpCoupon` overrides this |
 | `isStep` | boolean | When `true`, renders the bump as the last wizard step (image + `ADD TO CART` + `SKIP`) instead of the classic card in the bumps wrapper. Supports both static and variant bumps. Ignored in `inline-products` mode (falls back to the classic card) |
 

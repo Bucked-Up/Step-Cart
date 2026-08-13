@@ -21,7 +21,7 @@ import { setNewPrice, setOldPrice } from "./handleVariantValues.js";
 import handleRecurringDescription from "./handleRecurringDescription.js";
 import isStatic from "./isStatic.js";
 
-const createBumpStep = ({ product, stepsWrapper }) => {
+const createBumpStep = ({ product, stepsWrapper, bump }) => {
   const step = document.createElement("div");
   const imageWrapper = document.createElement("div");
   const productInfoWrapper = document.createElement("div");
@@ -46,7 +46,7 @@ const createBumpStep = ({ product, stepsWrapper }) => {
   newPriceTitle.classList.add("cart__steps__step__title-price-wrapper__new-price");
   title.classList.add("cart__steps__step__title");
   headline.classList.add("cart__steps__step__headline");
-  headline.innerHTML = "UPGRADE YOUR ORDER!:";
+  headline.innerHTML = bump?.title || "UPGRADE YOUR ORDER!";
   buttonRow.classList.add("cart__steps__step__buttons");
   skipButton.type = "button";
   addButton.type = "button";

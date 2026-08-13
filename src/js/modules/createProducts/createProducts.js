@@ -123,7 +123,7 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
   if (!isBump) wireDynamicFeatures({ products, cardMap, showBonus });
   let bumpStep = null;
   if (!isBump && bump?.isStep && getBumpProduct() && !stepsWrapper.hasAttribute("inline-products")) {
-    bumpStep = createBumpStep({ product: getBumpProduct(), stepsWrapper });
+    bumpStep = createBumpStep({ product: getBumpProduct(), stepsWrapper, bump });
     steps.push(bumpStep.step);
     backToSteps.classList.add("active");
     backToSteps.addEventListener("click", () => stepsWrapper.classList.add("active"));
