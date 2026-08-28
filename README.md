@@ -44,6 +44,7 @@ Array of product configurations.
 | `notDiscounted` | boolean | Disable discount display for this product |
 | `dynamicQtty` | object | Renders a `−` / input / `+` stepper on the card. Shape: `{ maxQtty: number, qttyTexts?: { [qty: string]: string } }` — `maxQtty` is the upper bound (min is always 1); optional `qttyTexts` reveals a progress bar at the top of the cart, filling from `qty/maxQtty` with the text pulled by current quantity (`qttyTexts["2"]` at qty 2). The bar turns green whenever the current quantity matches a bonus threshold (any `isBonus.parentQtty` that points at this product). See below |
 | `attachQtty` | array | List of product IDs whose quantity should mirror this product's. Set on the product that has `dynamicQtty`. See below |
+| `variantOrder` | array | Variant IDs to render first, in the given order. Every other variant keeps its original order. The first listed in-stock variant also becomes the default selection. See below |
 | `isBonus` | object | Hides this product until a parent product's quantity crosses a threshold. Shape: `{ parentProd: number, parentQtty: number }` — reveals the card (and includes it at checkout) once the parent's qty is `≥ parentQtty`. Works with either a pre-selected `variant` (renders as a static card) or a variant product without `variant` (renders as a bonus card with an inline dropdown, same UI as the order bump — single-option variants only). Combine with the global `showBonus` flag to render locked bonuses as a grayed-out preview instead of hiding them. See below |
 
 **`newPrice.affect` example** — apply the discount to only part of the quantity. `{ id: 924, quantity: 3, newPrice: { value: "$20", affect: 2 } }` renders as one full-price card (qty 1) and one discounted card (qty 2 at $20 each).
@@ -203,6 +204,14 @@ Products with selectable options. Uses step-by-step selection. Omit `selector` t
 ```javascript
 { id: 924, selector: "images" }
 ```
+
+Use `variantOrder` to pull specific variants to the front of the list. Anything not listed follows in its original order:
+
+```javascript
+{ id: 924, selector: "images", variantOrder: [14003, 11951] }
+```
+
+The first listed variant that is in stock also becomes the pre-selected one, so it drives the initial image, description and price. IDs that don't belong to the product are ignored. On products where one variant depends on another (color + size), this reorders the primary list only — sizes are left alone.
 
 ### Pre-selected Variant
 

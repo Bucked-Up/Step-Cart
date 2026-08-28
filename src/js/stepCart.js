@@ -7,6 +7,7 @@ import fetchProducts from "./modules/fetchProducts.js";
 import handleError from "./modules/handleError.js";
 import handlePurchase from "./modules/handlePurchase.js";
 import toggleLoading from "./modules/toggleLoading.js";
+import applyVariantOrder from "./modules/utils/applyVariantOrder.js";
 
 const stepCart = async ({ noCart, products, country, bump, buttonOptions, couponCode, showFullPricing, showBonus }) => {
   try {
@@ -23,7 +24,10 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
 
     const initDefaultProducts = () => {
       setCouponCode(couponCode);
-      apiData.forEach((product) => (product.configs = products.find((el) => el.id == product.id)));
+      apiData.forEach((product) => {
+        product.configs = products.find((el) => el.id == product.id);
+        applyVariantOrder(product);
+      });
       setApiProducts(apiData);
       if (bump) setBumpCoupon(bump.couponCode);
     };
@@ -54,7 +58,10 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
     const applyButtonOptions = (button) => {
       const opts = buttonOptions[button.id];
       const data = apiData.filter((el) => opts.products.find((toFind) => toFind.id == el.id));
-      data.forEach((product) => (product.configs = opts.products.find((el) => el.id == product.id)));
+      data.forEach((product) => {
+        product.configs = opts.products.find((el) => el.id == product.id);
+        applyVariantOrder(product);
+      });
       setApiProducts(data);
       setCouponCode(opts.couponCode);
       if (bump) setBumpCoupon(opts.bumpCoupon || bump.couponCode);
