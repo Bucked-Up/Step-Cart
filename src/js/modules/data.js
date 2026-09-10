@@ -7,7 +7,9 @@ let bumpProduct;
 let productsWrapper;
 let bumpWrapper;
 let couponCode;
+let baseCoupon;
 let bumpCode;
+let bumpApplied = false;
 
 const reset = () => {
   console.log("Resetting", totalValue);
@@ -15,13 +17,34 @@ const reset = () => {
   setGlobalQuantity(0);
   setTotalValue(0);
   setSubtotal(0);
+  bumpApplied = false;
   console.log("Resetted", totalValue);
 };
 const getProductConfigs = (id) => apiProducts.find((prod) => prod.id == id)?.configs;
-const setCouponCode = (code) => (couponCode = code);
+// couponCode is the code sent at checkout. baseCoupon is what applies while no bump is
+// added; bumpCode is what applies while one is. Both sides can be re-set at any time (a
+// dynamicQtty stepper does exactly that), so the active code is resolved on every write
+// instead of being snapshotted by the bump buttons.
+const setCouponCode = (code) => {
+  baseCoupon = code;
+  if (!bumpApplied) couponCode = code;
+};
 const getCouponCode = () => couponCode;
-const setBumpCoupon = (code) => (bumpCode = code);
+const getBaseCoupon = () => baseCoupon;
+const setBumpCoupon = (code) => {
+  bumpCode = code;
+  if (bumpApplied) couponCode = code;
+};
 const getBumpCoupon = () => bumpCode;
+const applyBumpCoupon = () => {
+  bumpApplied = true;
+  couponCode = bumpCode;
+};
+const revertBumpCoupon = () => {
+  bumpApplied = false;
+  couponCode = baseCoupon;
+};
+const isBumpCouponApplied = () => bumpApplied;
 const setProductsWrapper = (wrapper) => (productsWrapper = wrapper);
 const setBumpWrapper = (wrapper) => (bumpWrapper = wrapper);
 const getProductsWrapper = () => productsWrapper;
@@ -77,4 +100,4 @@ const refreshDiscount = () => {
 };
 const setBumpProduct = (product) => (bumpProduct = product);
 const getBumpProduct = () => bumpProduct;
-export { getProductConfigs, setBumpCoupon, getBumpCoupon, setCouponCode, getCouponCode, reset, removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, setProductQuantity, getTotalValue, setTotalValue, getSubtotal, setSubtotal, setBumpProduct, getBumpProduct };
+export { getProductConfigs, setBumpCoupon, getBumpCoupon, applyBumpCoupon, revertBumpCoupon, isBumpCouponApplied, setCouponCode, getCouponCode, getBaseCoupon, reset, removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, setProductQuantity, getTotalValue, setTotalValue, getSubtotal, setSubtotal, setBumpProduct, getBumpProduct };

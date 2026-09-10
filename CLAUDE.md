@@ -2,15 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Build
-
-Single script — bundles `src/js/stepCart.js` with browserify + esmify and minifies with terser:
+## Build and test
 
 ```
-npm run build   # writes step-cart.min.js at the repo root
+npm test        # vitest + jsdom, no network
+npm run build   # runs the tests, then writes step-cart.min.js at the repo root
 ```
 
-There is no lint, no test runner, and no CSS build step in `package.json`. `src/scss/style.scss` is compiled to `src/scss/style.css` out-of-band (VS Code Live Sass Compiler or similar) — if you edit the SCSS, also update the committed CSS so consumers loading `src/scss/style.css` stay in sync. Node version is pinned in `.nvmrc` (v20.19.5).
+`build` bundles `src/js/stepCart.js` with browserify + esmify and minifies with terser. A `prebuild` script runs the suite first, so a failing test blocks the artifact.
+
+**Always run `npm test` after changing anything under `src/js/`, and add cases for what you changed.** The suite in `tests/` drives the real library through jsdom rather than mocking it: it opens carts, clicks steppers, bumps, selectors and step navigation, and asserts totals, coupon state and the checkout URL. `tests/matrix.test.js` crosses the config axes (bump mode and add order × per-quantity coupon maps × quantity × `buttonOptions` × `showBonus` × `attachQtty`) and recomputes each expectation from the documented rules rather than hard-coding it — extend the axis lists there when you add a config knob. `fetch` is stubbed from responses captured in `tests/fixtures/` (see the Development section of `README.md` for refreshing them), so the suite never hits the network.
+
+Two things the tests need to know about: every module keeps state in module-scoped `let`s, so `loadModules()` in `tests/helpers/harness.js` calls `vi.resetModules()` and re-imports before each test; and `data.js` writes straight into `[cart-qtty]` / `[cart-total]`, so any test touching quantity or totals must mount the cart markup first (`mountCart()`).
+
+There is no lint and no CSS build step in `package.json`. `src/scss/style.scss` is compiled to `src/scss/style.css` out-of-band (VS Code Live Sass Compiler or similar) — if you edit the SCSS, also update the committed CSS so consumers loading `src/scss/style.css` stay in sync. Node version is pinned in `.nvmrc` (v20.19.5).
 
 `step-cart.min.js` is a committed build artifact — the library ships as that file plus the CSS, so consumers copy those two files into their site. Rebuild it before committing JS changes.
 
@@ -45,6 +50,7 @@ Entry point `src/js/stepCart.js` orchestrates everything in a fixed sequence:
 
 - `setGlobalQuantity` and `setTotalValue` do a direct `document.querySelector("[cart-qtty]" / "[cart-total]").innerHTML = …` on every call. Those attributes MUST exist in the DOM (they are injected by `createCart`) before any code that touches quantity or total runs.
 - `reset()` clears the cart-scoped state (products, quantity, total) but **not** `apiProducts` or `couponCode` — those are re-set on each cart-button click via `initDefaultProducts` / `applyButtonOptions` in `stepCart.js`. When you add new state, decide up front whether `reset()` should clear it.
+- Coupons are three pieces of state, not one: `baseCoupon` (from `stepCart`/`buttonOptions`, possibly overridden per quantity by `dynamicQtty.couponCodes`), `bumpCode` (from `bump.couponCode`/`bumpCoupon`, overridden by `dynamicQtty.bumpCouponCodes`), and `couponCode` — the one `handlePurchase` sends. `setCouponCode`/`setBumpCoupon` write their own side and re-resolve which is live; `applyBumpCoupon()`/`revertBumpCoupon()` flip between them. Nothing snapshots a coupon to restore later, so either side can change while a bump is added. `reset()` clears the applied flag.
 - Every `cart-button` click calls `resetCartUI()` and rebuilds from scratch (either the global config or the per-button entry in `buttonOptions`), so per-button `products`/`couponCode` never leak between clicks. Keep that invariant when adding cart-open paths.
 
 ### Selector rendering
@@ -62,3 +68,31 @@ Two calls fire from the flow, both under `src/js/modules/track/`: `sendViewedPro
 ### Loading + errors
 
 `toggleLoading` adds/removes a `loading` class on `<body>` and locks scroll — it is toggled once at start and once at end of `stepCart`, and again around `handlePurchase`. A `pageshow` listener clears it on bfcache restores so a back-navigated page isn't stuck loading. Any thrown error in the top-level flow is caught and passed to `handleError`.
+
+## Plan output constraints (mandatory)
+
+- Max 200 words total
+- Headings: h3 maximum, no h4+
+- Every item names a file path and line range
+- Code blocks: 10 lines max
+- End with 1-3 specific questions, nothing else
+
+## Plan structure — use exactly this
+
+### Files to change
+- `path/to/file.ts` (new | modify L45-60)
+### Commands
+### Open questions
+
+## Banned phrasing
+
+- "comprehensive", "detailed analysis", "various factors", "needs to be considered", "robust", "Phase 1: Requirements Analysis"
+- No summary/recap section at the end
+- No restating the request back to me
+
+## Standing rules (mandatory)
+
+- **Read the skills first.** Before planning or writing code, list `.claude/skills/` and load the relevant skill *and* its `references/*.md`. Don't work from a summary or from prior knowledge of the library — a skill that ships inside an installed package tracks the installed version, not your training data.
+- **"Recommended" means best fit, not least work.** When a plan or a question marks an option "(Recommended)", it must be the one that best serves good practice and the purpose of the code. Never rank options by how small the diff is or how little of the existing design they disturb. State cost and effort separately, as honest information, never folded into the pick.
+- **Always update `README.md`.** Any change to setup, commands, environment variables, or the public API updates the README in the same change. `CLAUDE.md` is for agents; `README.md` is for a human setting the project up.
+- **Never read or write `.env`.** It holds real credentials and belongs to the developer. Local overrides go in `.env.development`; one-off commands use an inline environment variable. Change `.env.example` to document a new setting.

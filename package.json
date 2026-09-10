@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "main": "./src/js/stepCart.js",
   "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prebuild": "vitest run",
     "build": "browserify ./src/js/stepCart.js -o step-cart.min.js -p esmify && terser step-cart.min.js -o step-cart.min.js"
   },
   "dependencies": {
@@ -12,5 +15,9 @@
   },
   "author": "",
   "license": "none",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "jsdom": "^30.0.1",
+    "vitest": "^5.0.0"
+  }
 }

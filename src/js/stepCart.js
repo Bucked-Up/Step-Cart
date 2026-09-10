@@ -63,7 +63,7 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
         applyVariantOrder(product);
       });
       setApiProducts(data);
-      setCouponCode(opts.couponCode);
+      setCouponCode(opts.couponCode || couponCode);
       if (bump) setBumpCoupon(opts.bumpCoupon || bump.couponCode);
       return data;
     };

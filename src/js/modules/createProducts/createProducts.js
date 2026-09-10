@@ -1,4 +1,4 @@
-import { addRegularProduct, addStaticProduct, getApiProducts, getBumpProduct, getBumpWrapper, getGlobalQuantity, getProductsWrapper, getSubtotal, getTotalValue, removeProduct, setGlobalQuantity, setSubtotal, setTotalValue } from "../data.js";
+import { addRegularProduct, addStaticProduct, getApiProducts, getBaseCoupon, getBumpCoupon, getBumpProduct, getBumpWrapper, getGlobalQuantity, getProductsWrapper, getSubtotal, getTotalValue, removeProduct, setBumpCoupon, setCouponCode, setGlobalQuantity, setSubtotal, setTotalValue } from "../data.js";
 import getPrice from "../utils/getPrice.js";
 import createBumpStep from "./createBumpStep.js";
 import createPlaceholderProduct from "./createPlaceholderProduct.js";
@@ -36,7 +36,8 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
           hidden: false,
         });
       }
-      if (stepsWrapper.hasAttribute("inline-products")) stepsWrapper.appendChild(createPlaceholderProduct({ product }));
+      // The bump render pass has no steps wrapper — only inline mode needs a placeholder.
+      if (stepsWrapper?.hasAttribute("inline-products")) stepsWrapper.appendChild(createPlaceholderProduct({ product }));
       return;
     }
     if (isStatic(product)) {
@@ -230,6 +231,17 @@ const wireDynamicFeatures = ({ products, cardMap, showBonus }) => {
     if (!parentEntry) return;
     const initialQty = product.configs.quantity || 1;
 
+    // Coupons keyed by the stepper's quantity. Quantities absent from the map fall back to
+    // the code configured on stepCart / buttonOptions, so only the tiers that change the
+    // deal need listing. data.js decides which of the two is live.
+    const baseCode = getBaseCoupon();
+    const baseBumpCode = getBumpCoupon();
+    const applyCoupons = (qty) => {
+      if (dyn.couponCodes) setCouponCode(dyn.couponCodes[String(qty)] ?? baseCode);
+      if (dyn.bumpCouponCodes) setBumpCoupon(dyn.bumpCouponCodes[String(qty)] ?? baseBumpCode);
+    };
+    applyCoupons(initialQty);
+
     let updateProgress = () => {};
     if (dyn.qttyTexts) {
       const progressEl = document.querySelector("[cart-progress]");
@@ -286,6 +298,7 @@ const wireDynamicFeatures = ({ products, cardMap, showBonus }) => {
           else lockBonus(bonusEntry, { showBonus });
         });
         updateProgress(newQty);
+        applyCoupons(newQty);
       },
     });
     const texts = parentEntry.card.querySelector(".cart__product__texts");

@@ -42,7 +42,7 @@ Array of product configurations.
 | `variant` | number | Pre-selected variant ID (skips variant selection) |
 | `recurring` | object | Enables subscription option. Shape: `{ percent: number }` — the discount % shown next to the recurring line. Requires radio inputs named `{productId}-recurring` on the page for the user to pick the frequency |
 | `notDiscounted` | boolean | Disable discount display for this product |
-| `dynamicQtty` | object | Renders a `−` / input / `+` stepper on the card. Shape: `{ maxQtty: number, qttyTexts?: { [qty: string]: string } }` — `maxQtty` is the upper bound (min is always 1); optional `qttyTexts` reveals a progress bar at the top of the cart, filling from `qty/maxQtty` with the text pulled by current quantity (`qttyTexts["2"]` at qty 2). The bar turns green whenever the current quantity matches a bonus threshold (any `isBonus.parentQtty` that points at this product). See below |
+| `dynamicQtty` | object | Renders a `−` / input / `+` stepper on the card. Shape: `{ maxQtty: number, qttyTexts?: { [qty: string]: string }, couponCodes?: { [qty: string]: string }, bumpCouponCodes?: { [qty: string]: string } }` — `maxQtty` is the upper bound (min is always 1); optional `qttyTexts` reveals a progress bar at the top of the cart, filling from `qty/maxQtty` with the text pulled by current quantity (`qttyTexts["2"]` at qty 2). The bar turns green whenever the current quantity matches a bonus threshold (any `isBonus.parentQtty` that points at this product). `couponCodes` / `bumpCouponCodes` swap the checkout coupon as the quantity changes. See below |
 | `attachQtty` | array | List of product IDs whose quantity should mirror this product's. Set on the product that has `dynamicQtty`. See below |
 | `variantOrder` | array | Variant IDs to render first, in the given order. Every other variant keeps its original order. The first listed in-stock variant also becomes the default selection. See below |
 | `isBonus` | object | Hides this product until a parent product's quantity crosses a threshold. Shape: `{ parentProd: number, parentQtty: number }` — reveals the card (and includes it at checkout) once the parent's qty is `≥ parentQtty`. Works with either a pre-selected `variant` (renders as a static card) or a variant product without `variant` (renders as a bonus card with an inline dropdown, same UI as the order bump — single-option variants only). Combine with the global `showBonus` flag to render locked bonuses as a grayed-out preview instead of hiding them. See below |
@@ -66,6 +66,29 @@ Behavior with the config above: product `1275` gets a stepper (1–3). When the 
 - Products listed in `attachQtty` do not need `dynamicQtty` themselves; their qty is driven by the parent.
 - `isBonus` products are added to / removed from the cart as the threshold is crossed. Products with a pre-selected `variant` render as a static card; products with variants but no `variant` render as a card with an inline dropdown selector (single-option variants only, matching the order bump) so shoppers can pick the variant they'll receive.
 - When `qttyTexts` is set, a progress bar renders at the top of the cart (below the header, above the products). Its fill width tracks `currentQty / maxQtty`, its label is `qttyTexts[String(currentQty)]`, and the whole bar (track background + fill) turns green when `currentQty` equals any bonus threshold tied to this product — so users get a visual "unlocked!" confirmation.
+
+**Per-quantity coupon codes** — `dynamicQtty.couponCodes` swaps the coupon sent at checkout as the stepper moves, so a bundle can be priced by a different code at each tier:
+
+```javascript
+products: [
+  {
+    id: 1275,
+    dynamicQtty: {
+      maxQtty: 3,
+      couponCodes: { "2": "BUNDLE2", "3": "BUNDLE3" },
+      bumpCouponCodes: { "2": "BUMP2", "3": "BUMP3" }
+    }
+  }
+],
+couponCode: "SINGLE",
+bump: { product: { id: 934, newPrice: { value: "$37.49" } }, couponCode: "SINGLE_BUMP" }
+```
+
+- Quantities absent from the map fall back to the coupon configured on `stepCart` (or on the clicked `buttonOptions` entry), so only the tiers that change the deal need listing. With the config above, qty 1 checks out on `SINGLE`, qty 2 on `BUNDLE2`.
+- `bumpCouponCodes` is the same map for the coupon that applies *while the order bump is added*, falling back to `bump.couponCode` / `buttonOptions[…].bumpCoupon`.
+- Both sides stay live: changing the quantity while a bump is added updates the bump coupon and the code that gets restored when the bump is removed, in either order.
+- Coupons resolve at render too, so a product configured with `quantity: 3` opens the cart already on the qty-3 code.
+- The stepper drives this, so a `noCart` button — which checks out immediately without rendering one — always uses the base coupon.
 
 ### `couponCode` (string)
 
@@ -263,3 +286,24 @@ Skip variant selection by specifying a variant:
 </body>
 </html>
 ```
+
+## Development
+
+Node version is pinned in `.nvmrc`.
+
+```bash
+npm install
+npm test            # vitest + jsdom, no network
+npm run test:watch  # same suite in watch mode
+npm run build       # runs the tests, then writes step-cart.min.js
+```
+
+`npm run build` is gated on `npm test` (a `prebuild` script), so `step-cart.min.js` can never be produced from failing source.
+
+The suite lives in `tests/` and drives the real library through jsdom — it opens carts, clicks steppers, bumps and selectors, and asserts the resulting totals and checkout URL. `fetch` is stubbed from responses captured in `tests/fixtures/`, so nothing hits the network. To refresh a fixture, or add one for a new product:
+
+```bash
+curl -s "https://funnels.buckedup.com/product/json/detail?product_id=1275" > tests/fixtures/product-1275.json
+```
+
+Then add the id to `FIXTURE_IDS` in `tests/helpers/harness.js`.

@@ -1,4 +1,4 @@
-import { getApiProducts, getBumpCoupon, getBumpWrapper, getCouponCode, getGlobalQuantity, getProductsWrapper, getTotalValue, setCouponCode, setGlobalQuantity, setTotalValue } from "../data.js";
+import { applyBumpCoupon, getApiProducts, getBumpWrapper, getGlobalQuantity, getProductsWrapper, getTotalValue, revertBumpCoupon, setGlobalQuantity, setTotalValue } from "../data.js";
 import getPrice from "../utils/getPrice.js";
 
 const createBumpButtons = ({ product, card }) => {
@@ -14,7 +14,6 @@ const createBumpButtons = ({ product, card }) => {
   removeButton.classList.add("remove-button");
   removeButton.style.display = "none";
   card.appendChild(removeButton);
-  let prevCoupon = getCouponCode();
   let oldProductsValue = 0;
   const products = getApiProducts();
   const productsPrices = [];
@@ -25,7 +24,7 @@ const createBumpButtons = ({ product, card }) => {
     });
   }
   addButton.addEventListener("click", () => {
-    setCouponCode(getBumpCoupon());
+    applyBumpCoupon();
     addButton.style.display = "none";
     removeButton.style = "";
     getProductsWrapper().appendChild(card);
@@ -45,7 +44,7 @@ const createBumpButtons = ({ product, card }) => {
     setGlobalQuantity(getGlobalQuantity() + 1);
   });
   removeButton.addEventListener("click", () => {
-    setCouponCode(prevCoupon);
+    revertBumpCoupon();
     removeButton.style.display = "none";
     addButton.style = "";
     getBumpWrapper().appendChild(card);

@@ -1,14 +1,13 @@
 import {
   addRegularProduct,
   addStaticProduct,
+  applyBumpCoupon,
   getApiProducts,
-  getBumpCoupon,
-  getCouponCode,
   getGlobalQuantity,
   getProductsWrapper,
   getTotalValue,
   removeProduct,
-  setCouponCode,
+  revertBumpCoupon,
   setGlobalQuantity,
   setTotalValue,
 } from "../data.js";
@@ -179,7 +178,6 @@ const createBumpStep = ({ product, stepsWrapper, bump }) => {
   stepsWrapper.appendChild(step);
 
   let applied = false;
-  let prevCoupon = null;
   let appliedDelta = 0;
   const savedPrices = [];
 
@@ -213,8 +211,7 @@ const createBumpStep = ({ product, stepsWrapper, bump }) => {
   const apply = () => {
     if (applied) return;
     applied = true;
-    prevCoupon = getCouponCode();
-    setCouponCode(getBumpCoupon());
+    applyBumpCoupon();
     const bumpAddDelta = getPrice(product.configs.newPrice.value) + (!staticBump && currentValue ? Number(currentValue.price.split("$")[1]) : 0);
     const changePricesDelta = applyChangePrices();
     appliedDelta = bumpAddDelta + changePricesDelta;
@@ -228,7 +225,7 @@ const createBumpStep = ({ product, stepsWrapper, bump }) => {
   const revert = () => {
     if (!applied) return;
     applied = false;
-    setCouponCode(prevCoupon);
+    revertBumpCoupon();
     revertChangePrices();
     setTotalValue(getTotalValue() - appliedDelta);
     setGlobalQuantity(getGlobalQuantity() - 1);
