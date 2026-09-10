@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { $, $$, addCartButton, cardFor, checkoutParams, loadModules, mockFetch, nextStep, progressText, quantity, resetDom, stepBack, stepper, steps, stepsText, stepsVisible, stubLocation, subtotal, total } from "./helpers/harness.js";
+import { $, $$, addCartButton, addedList, cardFor, checkoutParams, loadModules, mockFetch, nextStep, progressMet, progressText, quantity, resetDom, stepBack, stepper, steps, stepsText, stepsVisible, stubLocation, subtotal, total } from "./helpers/harness.js";
 
 let stepCart;
 let data;
@@ -188,9 +188,73 @@ describe("dynamicQtty quantity behaviour", () => {
     expect($("[cart-progress-added]").innerHTML).toContain("added");
   });
 
-  it("hides the progress bar when no qttyTexts are configured", async () => {
+  it("hides the progress bar when neither qttyTexts nor addedTexts are configured", async () => {
     await open({ products: [{ id: 1275, dynamicQtty: { maxQtty: 3 } }] });
     expect($("[cart-progress]").style.display).toBe("none");
+  });
+});
+
+describe("addedTexts perks", () => {
+  const perkProduct = (addedTexts, extra = {}) => ({
+    id: 1275,
+    dynamicQtty: { maxQtty: 3, qttyTexts: { 1: "one", 2: "two", 3: "three" }, addedTexts, ...extra },
+  });
+
+  it("lists a perk from the quantity that unlocks it and keeps it above that", async () => {
+    await open({ products: [perkProduct({ 2: "Free Shipping" })] });
+    expect(addedList()).toEqual([]);
+    stepper(1275).plus();
+    expect(addedList()).toEqual(["<b>Free Shipping</b> added"]);
+    stepper(1275).plus();
+    expect(addedList()).toEqual(["<b>Free Shipping</b> added"]);
+    stepper(1275).type(1);
+    expect(addedList()).toEqual([]);
+  });
+
+  it("accepts several perks on one tier", async () => {
+    await open({ products: [perkProduct({ 3: ["Free Gift", "VIP Access"] })] });
+    stepper(1275).type(3);
+    expect(addedList()).toEqual(["<b>Free Gift</b> added", "<b>VIP Access</b> added"]);
+  });
+
+  it("interleaves perks and product bonuses by quantity, perks first on a tie", async () => {
+    await open({
+      products: [
+        perkProduct({ 2: "Free Shipping", 3: "VIP Access" }),
+        { id: 201, variant: 11951, newPrice: { value: "FREE" }, name: "Creatine", isBonus: { parentProd: 1275, parentQtty: 3 } },
+      ],
+      showBonus: true,
+    });
+    stepper(1275).type(3);
+    expect(addedList()).toEqual(["<b>Free Shipping</b> added", "<b>VIP Access</b> added", "<b>Creatine</b> added"]);
+  });
+
+  it("turns the bar green on a perk tier, not just a bonus tier", async () => {
+    await open({ products: [perkProduct({ 2: "Free Shipping" })] });
+    expect(progressMet()).toBe(false);
+    stepper(1275).plus();
+    expect(progressMet()).toBe(true);
+    stepper(1275).plus();
+    expect(progressMet()).toBe(false);
+  });
+
+  it("renders the bar for perks alone, with an empty label", async () => {
+    await open({ products: [{ id: 1275, dynamicQtty: { maxQtty: 3, addedTexts: { 2: "Free Shipping" } } }] });
+    expect($("[cart-progress]").style.display).toBe("");
+    expect(progressText()).toBe("");
+    stepper(1275).plus();
+    expect(addedList()).toEqual(["<b>Free Shipping</b> added"]);
+  });
+
+  it("resolves perks at the configured starting quantity", async () => {
+    await open({ products: [{ ...perkProduct({ 2: "Free Shipping" }), quantity: 2 }] });
+    expect(addedList()).toEqual(["<b>Free Shipping</b> added"]);
+  });
+
+  it("keeps markup in a perk string", async () => {
+    await open({ products: [perkProduct({ 2: "Free <i>2-day</i> Shipping" })] });
+    stepper(1275).plus();
+    expect($("[cart-progress-added] i").innerHTML).toBe("2-day");
   });
 });
 

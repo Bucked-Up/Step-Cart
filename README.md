@@ -42,7 +42,7 @@ Array of product configurations.
 | `variant` | number | Pre-selected variant ID (skips variant selection) |
 | `recurring` | object | Enables subscription option. Shape: `{ percent: number }` — the discount % shown next to the recurring line. Requires radio inputs named `{productId}-recurring` on the page for the user to pick the frequency |
 | `notDiscounted` | boolean | Disable discount display for this product |
-| `dynamicQtty` | object | Renders a `−` / input / `+` stepper on the card. Shape: `{ maxQtty: number, qttyTexts?: { [qty: string]: string }, couponCodes?: { [qty: string]: string }, bumpCouponCodes?: { [qty: string]: string } }` — `maxQtty` is the upper bound (min is always 1); optional `qttyTexts` reveals a progress bar at the top of the cart, filling from `qty/maxQtty` with the text pulled by current quantity (`qttyTexts["2"]` at qty 2). The bar turns green whenever the current quantity matches a bonus threshold (any `isBonus.parentQtty` that points at this product). `couponCodes` / `bumpCouponCodes` swap the checkout coupon as the quantity changes. See below |
+| `dynamicQtty` | object | Renders a `−` / input / `+` stepper on the card. Shape: `{ maxQtty: number, qttyTexts?: { [qty: string]: string }, addedTexts?: { [qty: string]: string | string[] }, couponCodes?: { [qty: string]: string }, bumpCouponCodes?: { [qty: string]: string } }` — `maxQtty` is the upper bound (min is always 1); optional `qttyTexts` reveals a progress bar at the top of the cart, filling from `qty/maxQtty` with the text pulled by current quantity (`qttyTexts["2"]` at qty 2). The bar turns green whenever the current quantity matches a bonus threshold (any `isBonus.parentQtty` that points at this product). `addedTexts` adds non-product perks to the unlocked list under the bar. `couponCodes` / `bumpCouponCodes` swap the checkout coupon as the quantity changes. See below |
 | `attachQtty` | array | List of product IDs whose quantity should mirror this product's. Set on the product that has `dynamicQtty`. See below |
 | `variantOrder` | array | Variant IDs to render first, in the given order. Every other variant keeps its original order. The first listed in-stock variant also becomes the default selection. See below |
 | `isBonus` | object | Hides this product until a parent product's quantity crosses a threshold. Shape: `{ parentProd: number, parentQtty: number }` — reveals the card (and includes it at checkout) once the parent's qty is `≥ parentQtty`. Works with either a pre-selected `variant` (renders as a static card) or a variant product without `variant` (renders as a bonus card with an inline dropdown, same UI as the order bump — single-option variants only). Combine with the global `showBonus` flag to render locked bonuses as a grayed-out preview instead of hiding them. See below |
@@ -66,6 +66,22 @@ Behavior with the config above: product `1275` gets a stepper (1–3). When the 
 - Products listed in `attachQtty` do not need `dynamicQtty` themselves; their qty is driven by the parent.
 - `isBonus` products are added to / removed from the cart as the threshold is crossed. Products with a pre-selected `variant` render as a static card; products with variants but no `variant` render as a card with an inline dropdown selector (single-option variants only, matching the order bump) so shoppers can pick the variant they'll receive.
 - When `qttyTexts` is set, a progress bar renders at the top of the cart (below the header, above the products). Its fill width tracks `currentQty / maxQtty`, its label is `qttyTexts[String(currentQty)]`, and the whole bar (track background + fill) turns green when `currentQty` equals any bonus threshold tied to this product — so users get a visual "unlocked!" confirmation.
+
+**`addedTexts` — perks that aren't products** — the list under the progress bar normally names the `isBonus` products unlocked so far. `addedTexts` adds entries that have no product behind them, keyed by the quantity that unlocks them:
+
+```javascript
+dynamicQtty: {
+  maxQtty: 3,
+  qttyTexts: { "1": "1 pack", "2": "Free shipping unlocked!", "3": "Free shirt too!" },
+  addedTexts: { "2": "Free Shipping", "3": ["Free Gift", "VIP Access"] }
+}
+```
+
+- A tier takes one string or an array of them, and each renders like the product lines: **Free Shipping** added.
+- Entries are cumulative — a perk at `"2"` stays listed at 3 — and sort in with the product bonuses by quantity, perks first when they share a tier.
+- Reaching a perk's quantity turns the bar green, exactly as an `isBonus` threshold does.
+- Perks are display only. They add nothing to the cart, the total, or the checkout URL — pair one with a `couponCodes` tier if the perk has to reach checkout.
+- `addedTexts` renders the progress bar on its own, so `qttyTexts` is optional (the label above the track is then blank). The strings may carry HTML.
 
 **Per-quantity coupon codes** — `dynamicQtty.couponCodes` swaps the coupon sent at checkout as the stepper moves, so a bundle can be priced by a different code at each tier:
 

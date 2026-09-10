@@ -243,29 +243,29 @@ const wireDynamicFeatures = ({ products, cardMap, showBonus }) => {
     applyCoupons(initialQty);
 
     let updateProgress = () => {};
-    if (dyn.qttyTexts) {
+    if (dyn.qttyTexts || dyn.addedTexts) {
       const progressEl = document.querySelector("[cart-progress]");
       const fillEl = document.querySelector("[cart-progress-fill]");
       const textEl = document.querySelector("[cart-progress-text]");
       const addedEl = document.querySelector("[cart-progress-added]");
       if (progressEl && fillEl && textEl) {
-        const goals = new Set(
-          products
-            .map((p) => p.configs.isBonus)
-            .filter((bc) => bc && bc.parentProd == product.id)
-            .map((bc) => Number(bc.parentQtty)),
-        );
+        // Perks that aren't products — "Free Shipping" — keyed by the quantity that unlocks
+        // them, one string or several. They join the bonus list in the same shape so both
+        // render through the one template and share its `qty >= parentQtty` filter.
+        const perkList = Object.entries(dyn.addedTexts || {}).flatMap(([qtty, value]) => [].concat(value).map((name) => ({ name, parentQtty: Number(qtty) })));
         const bonusList = products
           .filter((p) => p.configs.isBonus && p.configs.isBonus.parentProd == product.id)
-          .map((p) => ({ name: p.configs.name || p.name, parentQtty: Number(p.configs.isBonus.parentQtty) }))
-          .sort((a, b) => a.parentQtty - b.parentQtty);
+          .map((p) => ({ name: p.configs.name || p.name, parentQtty: Number(p.configs.isBonus.parentQtty) }));
+        // Stable sort, perks first, so a perk reads above a product on the same tier.
+        const addedList = [...perkList, ...bonusList].sort((a, b) => a.parentQtty - b.parentQtty);
+        const goals = new Set(addedList.map((entry) => entry.parentQtty));
         progressEl.style.display = "";
         updateProgress = (qty) => {
           fillEl.style.width = `${Math.min(100, (qty / dyn.maxQtty) * 100)}%`;
-          textEl.innerHTML = dyn.qttyTexts[String(qty)] || "";
+          textEl.innerHTML = dyn.qttyTexts?.[String(qty)] || "";
           progressEl.classList.toggle("cart__progress--met", goals.has(qty));
           if (addedEl) {
-            addedEl.innerHTML = bonusList
+            addedEl.innerHTML = addedList
               .filter((b) => qty >= b.parentQtty)
               .map((b) => `<p><b>${b.name}</b> added</p>`)
               .join("");

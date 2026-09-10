@@ -121,3 +121,7 @@ export const stepsVisible = () => $("[cart-steps]").classList.contains("active")
 export const bumpStepAdd = () => $$(".cart__steps__step__button").find((el) => el.innerHTML === "ADD TO CART");
 export const bumpStepSkip = () => $(".cart__steps__step__button--skip");
 export const priceOf = (id) => $(`.cart__product__new-price[prod-id="${id}"]`).innerHTML;
+
+// The "added" list under the progress bar, one entry per unlocked bonus or perk.
+export const addedList = () => [...$$("[cart-progress-added] p")].map((el) => el.innerHTML);
+export const progressMet = () => $("[cart-progress]").classList.contains("cart__progress--met");

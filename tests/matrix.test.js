@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { addCartButton, bumpAdd, bumpStepAdd, cardFor, checkoutParams, loadModules, mockFetch, quantity, resetDom, stepper, stubLocation } from "./helpers/harness.js";
+import { addCartButton, addedList, bumpAdd, bumpStepAdd, cardFor, checkoutParams, loadModules, mockFetch, quantity, resetDom, stepper, stubLocation } from "./helpers/harness.js";
 
 let stepCart;
 let data;
@@ -108,12 +108,17 @@ describe("coupon across every configuration", () => {
   });
 });
 
+const PERK = "Free Shipping";
+const PERK_QTY = 2;
+
 describe("quantity, totals and bonuses across configurations", () => {
   for (const showBonus of [true, false])
     for (const withAttach of [true, false])
-      for (const qty of quantities) {
-        it(`showBonus=${showBonus} · attachQtty=${withAttach} · qty=${qty}`, async () => {
-          const parent = { id: 1275, dynamicQtty: { maxQtty: 3 } };
+      for (const withPerks of [true, false])
+        for (const qty of quantities) {
+        it(`showBonus=${showBonus} · attachQtty=${withAttach} · addedTexts=${withPerks} · qty=${qty}`, async () => {
+          const parent = { id: 1275, dynamicQtty: { maxQtty: 3, qttyTexts: { 1: "one", 2: "two", 3: "three" } } };
+          if (withPerks) parent.dynamicQtty.addedTexts = { [PERK_QTY]: PERK };
           if (withAttach) parent.attachQtty = [123];
           addCartButton("btn");
           await stepCart({
@@ -139,6 +144,12 @@ describe("quantity, totals and bonuses across configurations", () => {
           const bonusCard = cardFor(201);
           if (showBonus) expect(bonusCard.classList.contains("cart__product--locked")).toBe(!bonusUnlocked);
           else expect(bonusCard.style.display).toBe(bonusUnlocked ? "" : "none");
+
+          // The bonus at threshold 3 always lists last; the perk joins it from qty 2 up.
+          const expectedAdded = [];
+          if (withPerks && qty >= PERK_QTY) expectedAdded.push(`<b>${PERK}</b> added`);
+          if (bonusUnlocked) expectedAdded.push("<b>Creatine Monohydrate</b> added");
+          expect(addedList()).toEqual(expectedAdded);
         });
-      }
+        }
 });
