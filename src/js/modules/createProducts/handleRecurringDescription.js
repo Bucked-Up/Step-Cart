@@ -2,7 +2,9 @@ import getPrice from "../utils/getPrice.js";
 
 const handleRecurringDescription = ({ product, desc, value }) => {
   if (product.configs.recurring?.percent) {
-    const recurringPeriod = document.querySelector(`[name="${product.id}-recurring"]:checked`).value;
+    const recurringPeriod =
+      product.configs.recurring.period ??
+      document.querySelector(`[name="${product.id}-recurring"]:checked`)?.value;
     let productPrice = getPrice(product.price);
     if (value) productPrice += getPrice(value.price);
     const price = (productPrice - (product.configs.recurring.percent / 100) * productPrice).toFixed(2);

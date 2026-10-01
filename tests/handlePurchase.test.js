@@ -81,4 +81,11 @@ describe("handlePurchase", () => {
     expect(url.href).toContain("products[0][id]=1275&products[0][quantity]=1&products[0][product_recurring_id]=88");
     expect(url.href).toContain("products[1][id]=1275&products[1][quantity]=2");
   });
+
+  it("takes the recurring period from config when no radio is present", () => {
+    data.setApiProducts([{ id: 1275, configs: { recurring: { period: 2 } } }]);
+    data.addStaticProduct({ product: { id: 1275 }, quantity: 1 });
+    const url = go();
+    expect(url.href).toContain("products[0][id]=1275&products[0][quantity]=1&products[0][product_recurring_id]=2");
+  });
 });

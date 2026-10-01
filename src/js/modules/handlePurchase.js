@@ -29,7 +29,9 @@ const handlePurchase = ({ country, urlParams }) => {
   products.forEach((product) => {
     const recurring = getProductConfigs(product.id)?.recurring;
     if (recurring) {
-      const selectedValue = document.querySelector(`[name="${product.id}-recurring"]:checked`).value;
+      const selectedValue =
+        recurring.period ??
+        document.querySelector(`[name="${product.id}-recurring"]:checked`)?.value;
       appendEntry(product, 1, selectedValue);
       if (product.quantity > 1) appendEntry(product, product.quantity - 1, null);
     } else {
