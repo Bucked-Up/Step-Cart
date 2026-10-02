@@ -152,7 +152,7 @@ bump: {
 | `title` | string | Heading text. On classic bumps it's shown above the bump card (defaults to "You may also like:"). On `isStep` bumps it's the red headline above the bump step image (defaults to "UPGRADE YOUR ORDER!") |
 | `couponCode` | string | Coupon applied while the bump is added; reverts on remove. Per-button `bumpCoupon` overrides this |
 | `isStep` | boolean | When `true`, renders the bump as the last wizard step (image + `ADD TO CART` + `SKIP`) instead of the classic card in the bumps wrapper. Supports both static and variant bumps. Ignored in `inline-products` mode (falls back to the classic card) |
-| `progress` | object | Optional top progress bar for a classic (non-`isStep`) bump. Shape: `{ text?: string, addedText?: string, added?: string \| string[] }`. See below |
+| `progress` | object | Optional top progress bar for a classic (non-`isStep`) bump. Shape: `{ goal?: number, text?: string, addedText?: string, added?: string \| string[] }`. Without `goal` it fills on add (binary); with `goal` it tracks the cart total toward that dollar threshold and `text` may use a `{remaining}` token. See below |
 
 **Behavior:** on ADD the coupon swaps to the bump coupon, the bump card moves into the cart products, each `changePrices` entry rewrites the matching product's displayed price, and the total is recalculated. Clicking ADDED TO CART reverses everything. Bumps that are out of stock are skipped automatically.
 
@@ -175,6 +175,19 @@ bump: {
 - On `ADD TO CART`, the track fills to 100% and turns green, the label swaps to `addedText` (or stays on `text` if `addedText` is omitted), and each `added` entry is listed below as **Free Shipping** added. Clicking `ADDED TO CART` reverts all of it.
 - `added` takes one string or an array. The strings may carry HTML. Perks are display only — they add nothing to the cart, total, or checkout URL.
 - **One bar per cart.** The bar is a single shared element. If a product's `dynamicQtty` already owns it (its `qttyTexts`/`addedTexts` is set), the product wins and `bump.progress` is ignored. Ignored for `isStep` bumps (which have their own headline).
+
+**Goal mode** — add `goal` (a dollar threshold) to drive the fill off the **live cart total** instead of the bump's add state, e.g. a free-shipping meter:
+
+```javascript
+progress: {
+  goal: 75,                                       // threshold in dollars
+  text: "{remaining} Away from FREE SHIPPING",    // {remaining} → the amount still needed
+  addedText: "FREE SHIPPING UNLOCKED!"            // shown once the total reaches goal
+}
+```
+
+- The track fills to `total / goal` and the `{remaining}` token in `text` is replaced with the amount left (`$25.99`). When the total reaches `goal`, the bar fills to 100%, turns green, and the label switches to `addedText` (any `added` perks are listed too).
+- The bar tracks every change to the total — quantity steppers, bonuses, and the bump's own price / `changePrices` — so making another product FREE lowers the total and pushes the meter back. No `goal` keeps the binary add/remove behavior above.
 
 ### `buttonOptions` (object)
 

@@ -10,9 +10,13 @@ let couponCode;
 let baseCoupon;
 let bumpCode;
 let bumpApplied = false;
+// A single listener fired after every total change, so a total-driven UI (the bump's
+// free-shipping progress bar) can recompute without threading through every call site.
+let totalListener = null;
 
 const reset = () => {
   console.log("Resetting", totalValue);
+  totalListener = null;
   products = [];
   setGlobalQuantity(0);
   setTotalValue(0);
@@ -84,7 +88,9 @@ const setTotalValue = (value) => {
   totalValue = value;
   document.querySelector("[cart-total]").innerHTML = `$${value.toFixed(2)}`;
   refreshDiscount();
+  if (totalListener) totalListener(totalValue);
 };
+const setTotalListener = (fn) => (totalListener = fn);
 const getSubtotal = () => subtotal;
 const setSubtotal = (value) => {
   subtotal = value;
@@ -100,4 +106,4 @@ const refreshDiscount = () => {
 };
 const setBumpProduct = (product) => (bumpProduct = product);
 const getBumpProduct = () => bumpProduct;
-export { getProductConfigs, setBumpCoupon, getBumpCoupon, applyBumpCoupon, revertBumpCoupon, isBumpCouponApplied, setCouponCode, getCouponCode, getBaseCoupon, reset, removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, setProductQuantity, getTotalValue, setTotalValue, getSubtotal, setSubtotal, setBumpProduct, getBumpProduct };
+export { getProductConfigs, setBumpCoupon, getBumpCoupon, applyBumpCoupon, revertBumpCoupon, isBumpCouponApplied, setCouponCode, getCouponCode, getBaseCoupon, reset, removeProduct, setProductsWrapper, setBumpWrapper, getProductsWrapper, getBumpWrapper, getApiProducts, setApiProducts, getGlobalQuantity, setGlobalQuantity, getProducts, addStaticProduct, addRegularProduct, setProductQuantity, getTotalValue, setTotalValue, setTotalListener, getSubtotal, setSubtotal, setBumpProduct, getBumpProduct };

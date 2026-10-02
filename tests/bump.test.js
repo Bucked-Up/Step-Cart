@@ -141,6 +141,42 @@ describe("card bump progress bar", () => {
   });
 });
 
+describe("card bump progress bar — goal mode", () => {
+  // Opening cart: 1275 ($59.99) + 201/11951 ($27.99) = $87.98. Bump 123 adds $10.
+  const withGoal = (bumpProduct = {}) => ({
+    products: [{ id: 1275 }, { id: 201, variant: 11951 }],
+    couponCode: "BASE",
+    bump: {
+      product: { id: 123, newPrice: { value: "$10.00" }, ...bumpProduct },
+      progress: { goal: 90, text: "{remaining} Away from FREE SHIPPING", addedText: "FREE SHIPPING UNLOCKED!" },
+    },
+  });
+
+  it("shows the remaining amount toward the goal from the opening total", async () => {
+    await open(withGoal());
+    expect(progressText()).toBe("$2.02 Away from FREE SHIPPING");
+    expect(progressMet()).toBe(false);
+  });
+
+  it("crosses the goal when the bump is added", async () => {
+    await open(withGoal());
+    bumpAdd().click();
+    expect(progressMet()).toBe(true);
+    expect($("[cart-progress-fill]").style.width).toBe("100%");
+    expect(progressText()).toBe("FREE SHIPPING UNLOCKED!");
+    bumpRemove().click();
+    expect(progressMet()).toBe(false);
+    expect(progressText()).toBe("$2.02 Away from FREE SHIPPING");
+  });
+
+  it("recedes when the bump makes another product FREE (total drops)", async () => {
+    await open(withGoal({ changePrices: [{ id: 1275, newPrice: "FREE" }] }));
+    bumpAdd().click(); // 87.98 + 10 - 59.99 = 37.99
+    expect(progressMet()).toBe(false);
+    expect(progressText()).toBe("$52.01 Away from FREE SHIPPING");
+  });
+});
+
 describe("step bump", () => {
   // 201 without a variant renders as a wizard step, so the bump step lands after it.
   const stepConfig = () => ({ ...withChangePrices({ isStep: true, title: "Upgrade time" }), products: [{ id: 1275 }, { id: 201 }] });

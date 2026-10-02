@@ -1,4 +1,4 @@
-import { applyBumpCoupon, getApiProducts, getBumpWrapper, getGlobalQuantity, getProductsWrapper, getTotalValue, revertBumpCoupon, setGlobalQuantity, setTotalValue } from "../data.js";
+import { applyBumpCoupon, getApiProducts, getBumpWrapper, getGlobalQuantity, getProductsWrapper, getTotalValue, revertBumpCoupon, setGlobalQuantity, setTotalListener, setTotalValue } from "../data.js";
 import getPrice from "../utils/getPrice.js";
 
 const createBumpButtons = ({ product, card, progress }) => {
@@ -20,20 +20,42 @@ const createBumpButtons = ({ product, card, progress }) => {
   // (wired earlier, which unhides it) takes precedence, so only claim the bar when hidden.
   const progressEl = document.querySelector("[cart-progress]");
   const useProgress = progress && progressEl && progressEl.style.display === "none";
+  // renderProgress is driven by the add/remove handlers (binary mode). In goal mode the bar
+  // tracks the live cart total instead, so this stays a no-op and a total listener does the work.
   let renderProgress = () => {};
   if (useProgress) {
     const fillEl = progressEl.querySelector("[cart-progress-fill]");
     const textEl = progressEl.querySelector("[cart-progress-text]");
     const addedEl = progressEl.querySelector("[cart-progress-added]");
     const perks = [].concat(progress.added || []);
-    renderProgress = (added) => {
-      progressEl.style.display = "";
-      fillEl.style.width = added ? "100%" : "0%";
-      textEl.innerHTML = (added ? progress.addedText : progress.text) || progress.text || "";
-      progressEl.classList.toggle("cart__progress--met", added);
-      if (addedEl) addedEl.innerHTML = added ? perks.map((name) => `<p><b>${name}</b> added</p>`).join("") : "";
+    const renderAdded = (met) => {
+      if (addedEl) addedEl.innerHTML = met ? perks.map((name) => `<p><b>${name}</b> added</p>`).join("") : "";
     };
-    renderProgress(false);
+    if (progress.goal != null) {
+      // Goal mode: fill tracks total toward a dollar threshold (e.g. free shipping). The
+      // {remaining} token in `text` is replaced with the amount still needed.
+      const sub = (t, remaining) => (t || "").split("{remaining}").join(`$${remaining.toFixed(2)}`);
+      const renderGoal = (totalValue) => {
+        progressEl.style.display = "";
+        const remaining = Math.max(0, progress.goal - totalValue);
+        const met = totalValue >= progress.goal;
+        fillEl.style.width = `${Math.min(100, (totalValue / progress.goal) * 100)}%`;
+        textEl.innerHTML = met ? progress.addedText || sub(progress.text, remaining) : sub(progress.text, remaining);
+        progressEl.classList.toggle("cart__progress--met", met);
+        renderAdded(met);
+      };
+      renderGoal(getTotalValue());
+      setTotalListener(renderGoal);
+    } else {
+      renderProgress = (added) => {
+        progressEl.style.display = "";
+        fillEl.style.width = added ? "100%" : "0%";
+        textEl.innerHTML = (added ? progress.addedText : progress.text) || progress.text || "";
+        progressEl.classList.toggle("cart__progress--met", added);
+        renderAdded(added);
+      };
+      renderProgress(false);
+    }
   }
 
   let oldProductsValue = 0;
