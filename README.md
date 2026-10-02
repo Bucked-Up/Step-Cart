@@ -133,7 +133,12 @@ bump: {
     ]
   },
   title: "Add a shaker cup for $9.99!",   // header above the bump card
-  couponCode: "BUMP20"                    // replaces the active coupon while the bump is added
+  couponCode: "BUMP20",                   // replaces the active coupon while the bump is added
+  progress: {                              // optional — top progress bar tied to this bump
+    text: "Add a shaker to unlock free shipping",  // call-to-action shown before the bump is added
+    addedText: "Free shipping unlocked!",          // title shown once added (falls back to text)
+    added: "Free Shipping"                         // perk line(s) listed under the bar once added
+  }
 }
 ```
 
@@ -147,10 +152,29 @@ bump: {
 | `title` | string | Heading text. On classic bumps it's shown above the bump card (defaults to "You may also like:"). On `isStep` bumps it's the red headline above the bump step image (defaults to "UPGRADE YOUR ORDER!") |
 | `couponCode` | string | Coupon applied while the bump is added; reverts on remove. Per-button `bumpCoupon` overrides this |
 | `isStep` | boolean | When `true`, renders the bump as the last wizard step (image + `ADD TO CART` + `SKIP`) instead of the classic card in the bumps wrapper. Supports both static and variant bumps. Ignored in `inline-products` mode (falls back to the classic card) |
+| `progress` | object | Optional top progress bar for a classic (non-`isStep`) bump. Shape: `{ text?: string, addedText?: string, added?: string \| string[] }`. See below |
 
 **Behavior:** on ADD the coupon swaps to the bump coupon, the bump card moves into the cart products, each `changePrices` entry rewrites the matching product's displayed price, and the total is recalculated. Clicking ADDED TO CART reverses everything. Bumps that are out of stock are skipped automatically.
 
 With `isStep: true`, the bump becomes the final wizard step. `ADD TO CART` applies the same coupon/price/total mutations described above and then advances (closing the wizard). `SKIP` advances without adding — and reverses the bump if it was applied on a previous visit (e.g. the shopper stepped back and forward again).
+
+**`progress` — top progress bar on a classic bump** — reuses the same bar `dynamicQtty.qttyTexts` renders (top of the cart, below the header). It gives a one-click bump a call-to-action → "unlocked" reward:
+
+```javascript
+bump: {
+  product: { id: 201, newPrice: { value: "$9.99" } },
+  progress: {
+    text: "Add a shaker to unlock free shipping",
+    addedText: "Free shipping unlocked!",
+    added: ["Free Shipping"]
+  }
+}
+```
+
+- Before the bump is added, the bar shows `text` with an empty track.
+- On `ADD TO CART`, the track fills to 100% and turns green, the label swaps to `addedText` (or stays on `text` if `addedText` is omitted), and each `added` entry is listed below as **Free Shipping** added. Clicking `ADDED TO CART` reverts all of it.
+- `added` takes one string or an array. The strings may carry HTML. Perks are display only — they add nothing to the cart, total, or checkout URL.
+- **One bar per cart.** The bar is a single shared element. If a product's `dynamicQtty` already owns it (its `qttyTexts`/`addedTexts` is set), the product wins and `bump.progress` is ignored. Ignored for `isStep` bumps (which have their own headline).
 
 ### `buttonOptions` (object)
 

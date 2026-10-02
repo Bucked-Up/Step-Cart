@@ -4,14 +4,14 @@ import createBumpButtons from "./createBumpButtons.js";
 import createProductCard from "./createProductCard.js";
 import handleRecurringDescription from "./handleRecurringDescription.js";
 
-const createStaticProduct = ({ product, isDiscounted = true, prodQuantity, isBump }) => {
+const createStaticProduct = ({ product, isDiscounted = true, prodQuantity, isBump, progress }) => {
   const { card, image, name, desc, oldPrice, newPrice, quantity } = createProductCard(product);
   if (!product.configs.newPrice) isDiscounted = false;
   image.src = product.image;
   image.alt = product.name;
   name.innerHTML = product.configs.name || product.name;
   if (isBump) {
-    const [addButton, removeButton] = createBumpButtons({ product, card });
+    const [addButton, removeButton] = createBumpButtons({ product, card, progress });
     addButton.addEventListener("click", () => {
       addStaticProduct({ product });
     });

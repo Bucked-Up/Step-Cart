@@ -1,7 +1,7 @@
 import { applyBumpCoupon, getApiProducts, getBumpWrapper, getGlobalQuantity, getProductsWrapper, getTotalValue, revertBumpCoupon, setGlobalQuantity, setTotalValue } from "../data.js";
 import getPrice from "../utils/getPrice.js";
 
-const createBumpButtons = ({ product, card }) => {
+const createBumpButtons = ({ product, card, progress }) => {
   const addButton = document.createElement("button");
   addButton.type = "button";
   addButton.innerHTML = "ADD TO CART";
@@ -14,6 +14,28 @@ const createBumpButtons = ({ product, card }) => {
   removeButton.classList.add("remove-button");
   removeButton.style.display = "none";
   card.appendChild(removeButton);
+
+  // Optional top progress bar for this bump — a call-to-action that fills to a green
+  // "unlocked" state once the bump is added. One bar per cart: a product's dynamicQtty bar
+  // (wired earlier, which unhides it) takes precedence, so only claim the bar when hidden.
+  const progressEl = document.querySelector("[cart-progress]");
+  const useProgress = progress && progressEl && progressEl.style.display === "none";
+  let renderProgress = () => {};
+  if (useProgress) {
+    const fillEl = progressEl.querySelector("[cart-progress-fill]");
+    const textEl = progressEl.querySelector("[cart-progress-text]");
+    const addedEl = progressEl.querySelector("[cart-progress-added]");
+    const perks = [].concat(progress.added || []);
+    renderProgress = (added) => {
+      progressEl.style.display = "";
+      fillEl.style.width = added ? "100%" : "0%";
+      textEl.innerHTML = (added ? progress.addedText : progress.text) || progress.text || "";
+      progressEl.classList.toggle("cart__progress--met", added);
+      if (addedEl) addedEl.innerHTML = added ? perks.map((name) => `<p><b>${name}</b> added</p>`).join("") : "";
+    };
+    renderProgress(false);
+  }
+
   let oldProductsValue = 0;
   const products = getApiProducts();
   const productsPrices = [];
@@ -42,6 +64,7 @@ const createBumpButtons = ({ product, card }) => {
     }
     setTotalValue(newTotal);
     setGlobalQuantity(getGlobalQuantity() + 1);
+    renderProgress(true);
   });
   removeButton.addEventListener("click", () => {
     revertBumpCoupon();
@@ -61,6 +84,7 @@ const createBumpButtons = ({ product, card }) => {
     }
     setTotalValue(newTotal);
     setGlobalQuantity(getGlobalQuantity() - 1);
+    renderProgress(false);
   });
   return [addButton, removeButton];
 };

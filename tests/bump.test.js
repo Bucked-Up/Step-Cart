@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { $, addCartButton, bumpAdd, bumpRemove, bumpStepAdd, bumpStepSkip, cardFor, checkoutParams, loadModules, mockFetch, priceOf, quantity, resetDom, steps, stepsText, stubLocation, total } from "./helpers/harness.js";
+import { $, addCartButton, addedList, bumpAdd, bumpRemove, bumpStepAdd, bumpStepSkip, cardFor, checkoutParams, loadModules, mockFetch, priceOf, progressMet, progressText, quantity, resetDom, steps, stepsText, stubLocation, total } from "./helpers/harness.js";
 
 let stepCart;
 let data;
@@ -81,6 +81,63 @@ describe("card bump", () => {
   it("uses the configured bump title", async () => {
     await open({ ...withChangePrices(), bump: { ...withChangePrices().bump, title: "Want an upgrade?" } });
     expect($(".cart__bumps__title").innerHTML).toBe("Want an upgrade?");
+  });
+});
+
+describe("card bump progress bar", () => {
+  const withProgress = (extra = {}) => ({
+    products: [{ id: 1275 }, { id: 201, variant: 11951 }],
+    couponCode: "BASE",
+    bump: {
+      product: { id: 123, newPrice: { value: "$10.00" } },
+      couponCode: "BUMPCODE",
+      progress: { text: "Add it to unlock free shipping", addedText: "Free shipping unlocked!", added: "Free Shipping" },
+      ...extra,
+    },
+  });
+
+  it("shows a call-to-action bar before the bump is added", async () => {
+    await open(withProgress());
+    expect($("[cart-progress]").style.display).not.toBe("none");
+    expect(progressText()).toBe("Add it to unlock free shipping");
+    expect($("[cart-progress-fill]").style.width).toBe("0%");
+    expect(progressMet()).toBe(false);
+    expect(addedList()).toEqual([]);
+  });
+
+  it("fills the bar green and lists the perk once the bump is added", async () => {
+    await open(withProgress());
+    bumpAdd().click();
+    expect($("[cart-progress-fill]").style.width).toBe("100%");
+    expect(progressMet()).toBe(true);
+    expect(progressText()).toBe("Free shipping unlocked!");
+    expect(addedList()).toEqual(["<b>Free Shipping</b> added"]);
+  });
+
+  it("reverts the bar when the bump is removed", async () => {
+    await open(withProgress());
+    bumpAdd().click();
+    bumpRemove().click();
+    expect($("[cart-progress-fill]").style.width).toBe("0%");
+    expect(progressMet()).toBe(false);
+    expect(progressText()).toBe("Add it to unlock free shipping");
+    expect(addedList()).toEqual([]);
+  });
+
+  it("supports a list of perks", async () => {
+    await open(withProgress({ progress: { text: "", added: ["Free Shipping", "Free Shaker"] } }));
+    bumpAdd().click();
+    expect(addedList()).toEqual(["<b>Free Shipping</b> added", "<b>Free Shaker</b> added"]);
+  });
+
+  it("defers to a product's dynamicQtty bar when both are configured", async () => {
+    const config = withProgress();
+    config.products = [{ id: 1275, dynamicQtty: { maxQtty: 3, qttyTexts: { 1: "1 pack" } } }, { id: 201, variant: 11951 }];
+    await open(config);
+    expect(progressText()).toBe("1 pack");
+    bumpAdd().click();
+    expect(progressText()).toBe("1 pack");
+    expect(progressMet()).toBe(false);
   });
 });
 

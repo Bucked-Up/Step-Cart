@@ -12,6 +12,7 @@ import isStatic from "./isStatic.js";
 const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBump, showBonus, bump }) => {
   const wrapper = isBump ? getBumpWrapper() : getProductsWrapper();
   const products = isBump ? [getBumpProduct()] : getApiProducts();
+  const bumpProgress = isBump ? bump?.progress : undefined;
   const steps = [];
   const stepButtons = [];
   const cardMap = new Map();
@@ -21,7 +22,7 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
     if (product.configs.variant) {
       const value = handleProductWithSetVariant({ product });
       product.image = value.images[0];
-      const { card, recomputeCard, contributionFor, subtotalFor, initialQty } = createStaticProduct({ product, isBump });
+      const { card, recomputeCard, contributionFor, subtotalFor, initialQty } = createStaticProduct({ product, isBump, progress: bumpProgress });
       wrapper.appendChild(card);
       if (!isBump) {
         cardMap.set(Number(product.id), {
@@ -48,7 +49,7 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
         wrapper.appendChild(createStaticProduct({ product, isDiscounted: false, prodQuantity: rest }).card);
         wrapper.appendChild(createStaticProduct({ product, prodQuantity: product.configs.quantity - rest }).card);
       } else {
-        const { card, recomputeCard, contributionFor, subtotalFor, initialQty } = createStaticProduct({ product, isBump });
+        const { card, recomputeCard, contributionFor, subtotalFor, initialQty } = createStaticProduct({ product, isBump, progress: bumpProgress });
         wrapper.appendChild(card);
         if (!isBump) {
           cardMap.set(Number(product.id), {
@@ -112,7 +113,7 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
         lastVariantPrice = newVariantPrice;
       });
     } else if (isBump) {
-      wrapper.appendChild(createRegularProduct({ product, isBump }).card);
+      wrapper.appendChild(createRegularProduct({ product, isBump, progress: bumpProgress }).card);
     } else {
       const [step, button] = createStep({ product, stepsWrapper });
       steps.push(step);

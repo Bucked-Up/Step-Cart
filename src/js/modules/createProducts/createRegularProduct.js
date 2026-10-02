@@ -4,7 +4,7 @@ import createDropdownSelector from "./createDropdownSelector.js";
 import createProductCard from "./createProductCard.js";
 import { setNewPrice, setOldPrice, updateVariantValue } from "./handleVariantValues.js";
 
-const createRegularProduct = ({ product, isBump }) => {
+const createRegularProduct = ({ product, isBump, progress }) => {
   const { card, image, name, desc, oldPrice, newPrice } = createProductCard(product, isBump);
   let isAdded = false;
   let currentValue = product.options[0].values.find((value) => value.in_stock);
@@ -45,7 +45,7 @@ const createRegularProduct = ({ product, isBump }) => {
   });
 
   if (isBump) {
-    const [addButton, removeButton] = createBumpButtons({ product, card });
+    const [addButton, removeButton] = createBumpButtons({ product, card, progress });
     addButton.addEventListener("click", () => {
       isAdded = true;
       addRegularProduct({ product, choice: getChoice(), replace: true });

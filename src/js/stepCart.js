@@ -53,6 +53,17 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
       getBumpWrapper()
         .querySelectorAll(".cart__product")
         .forEach((el) => el.remove());
+      // The progress bar is a single shared element reused across cart opens — clear any
+      // state left by a previous button's product dynamicQtty / bump progress config.
+      const progressEl = document.querySelector("[cart-progress]");
+      if (progressEl) {
+        progressEl.style.display = "none";
+        progressEl.classList.remove("cart__progress--met");
+        progressEl.querySelector("[cart-progress-fill]").style.width = "0%";
+        progressEl.querySelector("[cart-progress-text]").innerHTML = "";
+        const addedEl = progressEl.querySelector("[cart-progress-added]");
+        if (addedEl) addedEl.innerHTML = "";
+      }
     };
 
     const applyButtonOptions = (button) => {
@@ -80,7 +91,7 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
       stepsWrapper = inlineProducts;
       initDefaultProducts();
       createProducts({ stepsWrapper, stepsBack, backToSteps, cartQuantity, showBonus, bump });
-      if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true });
+      if (bump?.product && getBumpProduct()) createProducts({ cartQuantity, isBump: true, bump });
     }
     [cartBackdrop, ...closeCartButtons].forEach((el) =>
       el.addEventListener("click", () => {
@@ -119,7 +130,7 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
           }
 
           createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity, showBonus, bump });
-          if (bump?.product && getBumpProduct() && !bump.isStep) createProducts({ cartQuantity, isBump: true });
+          if (bump?.product && getBumpProduct() && !bump.isStep) createProducts({ cartQuantity, isBump: true, bump });
         }
         cartWrapper.classList.add("active");
         document.body.style.overflow = "hidden";
