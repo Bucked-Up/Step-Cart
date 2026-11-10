@@ -240,6 +240,16 @@ stepCart({
 
 > Only static products and products with a pre-selected `variant` are sent through in `noCart` mode. A product that normally requires variant selection but has no `variant` set is silently skipped, since there is no UI to pick it.
 
+### `showInitialLoading` (boolean)
+
+Global option. Defaults to `true`: the full-screen loader covers the page while the products load, and `cart-button` clicks do nothing until then. Set it to `false` to keep the page visible during start-up:
+
+```javascript
+stepCart({ products, bump, couponCode, showInitialLoading: false })
+```
+
+With `false`, a `cart-button` click before the products are ready gets `aria-busy="true"`, and the cart opens by itself when the data arrives. If several buttons are clicked, the last one wins. Only buttons that are in the page when `stepCart` is called are listened to early. The checkout loader and the error flow do not change.
+
 ## HTML Requirements
 
 ### Cart Button

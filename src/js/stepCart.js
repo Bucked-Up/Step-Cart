@@ -9,7 +9,9 @@ import handlePurchase from "./modules/handlePurchase.js";
 import toggleLoading from "./modules/toggleLoading.js";
 import applyVariantOrder from "./modules/utils/applyVariantOrder.js";
 
-const stepCart = async ({ noCart, products, country, bump, buttonOptions, couponCode, showFullPricing, showBonus }) => {
+const stepCart = async ({ noCart, products, country, bump, buttonOptions, couponCode, showFullPricing, showBonus, showInitialLoading = true }) => {
+  let openCart;
+  let pendingButton = null;
   try {
     window.addEventListener("pageshow", function (event) {
       if (event.persisted) {
@@ -19,7 +21,21 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
     });
     let urlParams = new URLSearchParams(window.location.search);
     if (urlParams.size == 0) urlParams = new URLSearchParams(window.location.hash.split("?")[1]);
-    toggleLoading();
+    if (showInitialLoading) {
+      toggleLoading();
+    } else {
+      // No start-up loader, so listen before the fetch: an early click is queued on the
+      // button (last one wins) and replayed once the cart is ready.
+      document.querySelectorAll("[cart-button]").forEach((button) =>
+        button.addEventListener("click", () => {
+          if (openCart) return openCart(button);
+          if (pendingButton === button) return;
+          pendingButton?.removeAttribute("aria-busy");
+          pendingButton = button;
+          button.setAttribute("aria-busy", "true");
+        }),
+      );
+    }
     const [apiData, bumpData] = await Promise.all([fetchProducts({ products, country }), fetchProducts({ bump: bump?.product })]);
 
     const initDefaultProducts = () => {
@@ -79,7 +95,6 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
       return data;
     };
 
-    const buttons = document.querySelectorAll("[cart-button]");
     if (bumpData && !Object.keys(bumpData.stock).every((key) => bumpData.stock[key] <= 0)) setBumpProduct(bumpData);
     if (apiData.some((product) => Object.keys(product.stock).every((key) => product.stock[key] <= 0))) throw new Error("Out of stock products.");
     let { closeCartButtons, cartWrapper, cartBackdrop, stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity } = createCart({ bumpTitle: bump?.title, country, urlParams, showFullPricing });
@@ -99,47 +114,57 @@ const stepCart = async ({ noCart, products, country, bump, buttonOptions, coupon
         document.body.style = "";
       }),
     );
-    buttons.forEach((button) => {
-      button.addEventListener("click", () => {
-        if (inlineProducts) {
-          const invalidSelector = inlineProducts.querySelector("[invalid]");
-          if (invalidSelector) {
-            invalidSelector.classList.add("invalid");
-            invalidSelector.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-            return;
-          }
-        } else {
-          resetCartUI();
-
-          const hasButtonOptions = buttonOptions && buttonOptions[button.id];
-          let data;
-          if (hasButtonOptions) {
-            data = applyButtonOptions(button);
-          } else {
-            initDefaultProducts();
-            data = apiData;
-          }
-
-          const skipCart = noCart || (hasButtonOptions && buttonOptions[button.id].noCart);
-          if (skipCart) {
-            handleNoCart(data);
-            return;
-          }
-
-          createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity, showBonus, bump });
-          if (bump?.product && getBumpProduct() && !bump.isStep) createProducts({ cartQuantity, isBump: true, bump });
+    openCart = (button) => {
+      if (inlineProducts) {
+        const invalidSelector = inlineProducts.querySelector("[invalid]");
+        if (invalidSelector) {
+          invalidSelector.classList.add("invalid");
+          invalidSelector.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          return;
         }
-        cartWrapper.classList.add("active");
-        document.body.style.overflow = "hidden";
-      });
-    });
-    toggleLoading();
+      } else {
+        resetCartUI();
+
+        const hasButtonOptions = buttonOptions && buttonOptions[button.id];
+        let data;
+        if (hasButtonOptions) {
+          data = applyButtonOptions(button);
+        } else {
+          initDefaultProducts();
+          data = apiData;
+        }
+
+        const skipCart = noCart || (hasButtonOptions && buttonOptions[button.id].noCart);
+        if (skipCart) {
+          handleNoCart(data);
+          return;
+        }
+
+        createProducts({ stepsWrapper, stepsText, stepsBack, backToSteps, cartQuantity, showBonus, bump });
+        if (bump?.product && getBumpProduct() && !bump.isStep) createProducts({ cartQuantity, isBump: true, bump });
+      }
+      cartWrapper.classList.add("active");
+      document.body.style.overflow = "hidden";
+    };
+    if (showInitialLoading) {
+      document.querySelectorAll("[cart-button]").forEach((button) => button.addEventListener("click", () => openCart(button)));
+      toggleLoading();
+    }
   } catch (e) {
+    pendingButton?.removeAttribute("aria-busy");
     console.error(e);
     handleError();
+    return;
+  }
+  // Replayed outside the try so a failing click behaves like a click after ready.
+  if (pendingButton) {
+    const button = pendingButton;
+    pendingButton = null;
+    button.removeAttribute("aria-busy");
+    openCart(button);
   }
 };
 export default stepCart;
