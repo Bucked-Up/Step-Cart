@@ -44,6 +44,13 @@ describe("static products", () => {
     expect($(".cart__steps__step")).toBeFalsy();
     expect(checkoutParams(location).url.href).toContain("products[0][options][2926]=11951");
   });
+
+  it("ships the configured quantity for a pre-selected variant", async () => {
+    await open({ products: [{ id: 201, variant: 11951, quantity: 2, newPrice: { value: "$33.76" } }] });
+    expect(cardFor(201).querySelector(".cart__product__quantity").innerHTML).toBe("2");
+    expect(total()).toBe("$33.76");
+    expect(checkoutParams(location).url.href).toContain("products[0][id]=201&products[0][quantity]=2&products[0][options][2926]=11951");
+  });
 });
 
 describe("variant steps", () => {
@@ -69,6 +76,24 @@ describe("variant steps", () => {
     next.dispatchEvent(new window.Event("change"));
     nextStep();
     expect(checkoutParams(location).url.href).toContain(`products[0][options][2926]=${next.value}`);
+  });
+
+  it("ships the configured quantity for a step and keeps it across a variant change", async () => {
+    await open({ products: [{ id: 201, selector: "text", quantity: 2, newPrice: { value: "$33.76" } }] });
+    const card = cardFor(201);
+    const badge = card.querySelector(".cart__product__quantity");
+    expect(badge.innerHTML).toBe("2");
+    expect(badge.style.display).toBe("");
+    expect(card.querySelector(".cart__product__old-price").innerHTML).toBe("$55.98");
+    expect(total()).toBe("$33.76");
+    expect(quantity()).toBe("2");
+    const next = selectorInputs().find((input) => input.value === "11952");
+    next.checked = true;
+    next.dispatchEvent(new window.Event("change"));
+    // The $2.00 surcharge applies to each unit; newPrice stays the line total.
+    expect(total()).toBe("$37.76");
+    nextStep();
+    expect(checkoutParams(location).url.href).toContain("products[0][id]=201&products[0][quantity]=2&products[0][options][2926]=11952");
   });
 
   it("renders a dropdown by default and image swatches for colors", async () => {

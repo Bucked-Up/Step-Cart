@@ -20,7 +20,12 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
   const pricesWrapper = document.createElement("div");
   const title = document.createElement("p");
   const button = document.createElement("button");
-  const { card, image: cardImage, name, desc, oldPrice, newPrice } = createProductCard(product);
+  const { card, image: cardImage, name, desc, oldPrice, newPrice, quantity } = createProductCard(product);
+  const qty = product.configs.quantity || 1;
+  if (qty > 1) {
+    quantity.innerHTML = qty;
+    quantity.style.display = "";
+  }
   getProductsWrapper().appendChild(card);
 
   titlePriceWrapper.appendChild(title);
@@ -49,7 +54,7 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
   let secondarySelectorsWrapper;
 
   if (product.configs.newPrice && product.configs.newPrice.value !== "FREE") setTotalValue(getTotalValue() + Number(product.configs.newPrice.value.split("$")[1]));
-  else if (!product.configs.newPrice) setTotalValue(getTotalValue() + getPrice(product.price));
+  else if (!product.configs.newPrice) setTotalValue(getTotalValue() + getPrice(product.price) * qty);
 
   if (isDependent(product)) {
     const values = product.options[0].values;
@@ -57,7 +62,7 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
     currentPrimaryValue = firstAvailableValue;
   } else {
     firstAvailableValue = product.options[0].values.find((value) => value.in_stock);
-    addRegularProduct({ product, choice: `${product.options[0].id}-${firstAvailableValue.id}`, replace: true });
+    addRegularProduct({ product, choice: `${product.options[0].id}-${firstAvailableValue.id}`, replace: true, quantity: qty });
   }
 
   cardImage.src = firstAvailableValue.images[0];
@@ -66,12 +71,12 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
   desc.innerHTML = firstAvailableValue.name;
   handleRecurringDescription({ product, desc, value: firstAvailableValue });
   if (product.configs.newPrice) {
-    setOldPrice(product, oldPrice, firstAvailableValue.price);
-    setNewPrice(product, newPrice, firstAvailableValue.price);
+    setOldPrice(product, oldPrice, firstAvailableValue.price, qty);
+    setNewPrice(product, newPrice, firstAvailableValue.price, qty);
     oldPriceTitle.innerHTML = oldPrice.innerHTML;
     newPriceTitle.innerHTML = newPrice.innerHTML;
   } else {
-    setOldPrice(product, newPrice, firstAvailableValue.price);
+    setOldPrice(product, newPrice, firstAvailableValue.price, qty);
     newPriceTitle.innerHTML = newPrice.innerHTML;
   }
 
@@ -129,7 +134,7 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
         });
         const currentSecondaryInput = secondaryInputs.find((input) => input.checked);
         if (currentSecondaryInput) {
-          addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}/${product.options[1].id}-${currentSecondaryInput.value}`, replace: true });
+          addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}/${product.options[1].id}-${currentSecondaryInput.value}`, replace: true, quantity: qty });
           cardImage.src = currentPrimaryValue.images[0];
           cardImage.alt = currentPrimaryValue.name;
           name.innerHTML = product.configs.name || product.name;
@@ -138,15 +143,15 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
           handleRecurringDescription({ product, desc, value });
         }
       } else {
-        addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}`, replace: true });
-        updateVariantValue(product, value);
+        addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}`, replace: true, quantity: qty });
+        updateVariantValue(product, value, qty);
         if (product.configs.newPrice) {
-          setOldPrice(product, oldPrice, value.price);
-          setNewPrice(product, newPrice, value.price);
+          setOldPrice(product, oldPrice, value.price, qty);
+          setNewPrice(product, newPrice, value.price, qty);
           oldPriceTitle.innerHTML = oldPrice.innerHTML;
           newPriceTitle.innerHTML = newPrice.innerHTML;
         } else {
-          setOldPrice(product, newPrice, value.price);
+          setOldPrice(product, newPrice, value.price, qty);
           newPriceTitle.innerHTML = newPrice.innerHTML;
         }
         cardImage.src = value.images[0];
@@ -182,19 +187,19 @@ const createStep = ({ product, stepsWrapper, noSelection }) => {
 
       input.addEventListener("change", () => {
         const value = product.options[1].values.find((value) => value.id == input.value);
-        updateVariantValue(product, value);
+        updateVariantValue(product, value, qty);
         if (product.configs.newPrice) {
-          setOldPrice(product, oldPrice, value.price);
-          setNewPrice(product, newPrice, value.price);
+          setOldPrice(product, oldPrice, value.price, qty);
+          setNewPrice(product, newPrice, value.price, qty);
           oldPriceTitle.innerHTML = oldPrice.innerHTML;
           newPriceTitle.innerHTML = newPrice.innerHTML;
         } else {
-          setOldPrice(product, newPrice, value.price);
+          setOldPrice(product, newPrice, value.price, qty);
           newPriceTitle.innerHTML = newPrice.innerHTML;
         }
         selectorsWrapper.removeAttribute("invalid");
         selectorsWrapper.classList.remove("invalid");
-        addRegularProduct({ product, choice: `${product.options[0].id}-${primaryInputs.find((input) => input.checked).value}/${product.options[1].id}-${input.value}`, replace: true });
+        addRegularProduct({ product, choice: `${product.options[0].id}-${primaryInputs.find((input) => input.checked).value}/${product.options[1].id}-${input.value}`, replace: true, quantity: qty });
         cardImage.src = currentPrimaryValue.images[0];
         cardImage.alt = currentPrimaryValue.name;
         name.innerHTML = product.configs.name || product.name;

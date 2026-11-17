@@ -153,3 +153,51 @@ describe("quantity, totals and bonuses across configurations", () => {
         });
         }
 });
+
+// A configured `quantity` must reach checkout whatever renders the product. newPrice is the
+// line total; a variant surcharge scales per unit on a step (static cards show list price only).
+const BASE_201 = 27.99;
+const SURCHARGE_11952 = 2;
+describe("configured quantity across product kinds", () => {
+  for (const kind of ["preset", "step"])
+    for (const withNewPrice of [false, true])
+      for (const surcharged of kind === "step" ? [false, true] : [false])
+        for (const qty of quantities)
+          it(`kind=${kind} · newPrice=${withNewPrice} · surcharge=${surcharged} · qty=${qty}`, async () => {
+            const product = { id: 201, quantity: qty };
+            if (kind === "preset") product.variant = 11951;
+            else product.selector = "text";
+            if (withNewPrice) product.newPrice = { value: "$33.76" };
+            addCartButton("btn");
+            await stepCart({ products: [product] });
+            document.querySelector("#btn").click();
+            if (surcharged) {
+              const input = [...document.querySelectorAll('.cart__steps__step input[type="radio"]')].find((el) => el.value === "11952");
+              input.checked = true;
+              input.dispatchEvent(new window.Event("change"));
+            }
+
+            const surcharge = surcharged ? SURCHARGE_11952 * qty : 0;
+            const expectedTotal = withNewPrice ? 33.76 + surcharge : BASE_201 * qty + surcharge;
+            expect(data.getTotalValue()).toBeCloseTo(expectedTotal, 2);
+            expect(Number(quantity())).toBe(qty);
+            const badge = cardFor(201).querySelector(".cart__product__quantity");
+            expect(badge.style.display).toBe(qty > 1 ? "" : "none");
+            const choice = surcharged ? 11952 : 11951;
+            expect(checkoutParams(location).url.href).toContain(`products[0][id]=201&products[0][quantity]=${qty}&products[0][options][2926]=${choice}`);
+          });
+
+  it("ships the configured quantity for an isBonus variant card once unlocked", async () => {
+    addCartButton("btn");
+    await stepCart({
+      products: [
+        { id: 1275, dynamicQtty: { maxQtty: 3 } },
+        { id: 201, quantity: 2, newPrice: { value: "FREE" }, isBonus: { parentProd: 1275, parentQtty: 2 } },
+      ],
+    });
+    document.querySelector("#btn").click();
+    expect(checkoutParams(location).url.href.includes("[id]=201")).toBe(false);
+    stepper(1275).type(2);
+    expect(checkoutParams(location).url.href).toMatch(/products\[1\]\[id\]=201&products\[1\]\[quantity\]=2/);
+  });
+});

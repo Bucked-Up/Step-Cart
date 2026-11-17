@@ -68,16 +68,16 @@ const setProductQuantity = ({ id, quantity }) => {
   const entry = products.find((el) => el.id === id);
   if (entry) entry.quantity = quantity;
 };
-const addRegularProduct = ({ product, choice, replace }) => {
+const addRegularProduct = ({ product, choice, replace, quantity = 1 }) => {
   if (replace) {
     products = products.filter((el) => el.id !== product.id);
-    products.push({ id: product.id, choice, quantity: 1, type: "regular" });
+    products.push({ id: product.id, choice, quantity, type: "regular" });
   } else {
     const currentProduct = products.find((el) => el.id === product.id && el.choice === choice);
     if (currentProduct) {
       currentProduct.quantity = currentProduct.quantity + 1;
     } else {
-      products.push({ id: product.id, choice, quantity: 1, type: "regular" });
+      products.push({ id: product.id, choice, quantity, type: "regular" });
     }
   }
 };

@@ -96,7 +96,8 @@ describe("product list", () => {
     data.addRegularProduct({ product, choice: "1-3" });
     expect(data.getProducts()).toHaveLength(2);
     data.addRegularProduct({ product, choice: "1-9", replace: true });
-    expect(data.getProducts()).toEqual([{ id: 7, choice: "1-9", quantity: 1, type: "regular" }]);
+    expect(data.getProducts()).toEqual([{ id: 7, choice: "1-9", quantity: 1, type: "regular" }]);    data.addRegularProduct({ product, choice: "1-4", replace: true, quantity: 3 });
+    expect(data.getProducts()).toEqual([{ id: 7, choice: "1-4", quantity: 3, type: "regular" }]);
   });
 
   it("sets quantity on an existing static entry and removes by product", () => {

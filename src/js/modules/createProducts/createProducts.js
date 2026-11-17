@@ -81,7 +81,7 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
       const contributionFor = (qty) => priceContribution(control.getVariantPrice(), qty);
       const subtotalFor = (qty) => priceSubtotal(control.getVariantPrice(), qty);
 
-      addRegularProduct({ product, choice: control.getChoice() });
+      addRegularProduct({ product, choice: control.getChoice(), quantity: initialQty });
       setTotalValue(getTotalValue() + contributionFor(initialQty));
       setSubtotal(getSubtotal() + subtotalFor(initialQty));
 
@@ -108,7 +108,7 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
           const newSub = priceSubtotal(newVariantPrice, initialQty);
           if (newContrib !== prevContrib) setTotalValue(getTotalValue() + (newContrib - prevContrib));
           if (newSub !== prevSub) setSubtotal(getSubtotal() + (newSub - prevSub));
-          addRegularProduct({ product, choice, replace: true });
+          addRegularProduct({ product, choice, replace: true, quantity: initialQty });
         }
         lastVariantPrice = newVariantPrice;
       });
@@ -204,7 +204,7 @@ const unlockBonus = (entry, { showBonus }) => {
   if (subtotalContribution !== 0) setSubtotal(getSubtotal() + subtotalContribution);
   setGlobalQuantity(getGlobalQuantity() + entry.initialQty);
   if (entry.kind === "variant") {
-    addRegularProduct({ product: entry.product, choice: entry.choice });
+    addRegularProduct({ product: entry.product, choice: entry.choice, quantity: entry.initialQty });
   } else {
     addStaticProduct({ product: entry.product, quantity: entry.initialQty });
   }
