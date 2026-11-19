@@ -247,6 +247,15 @@
         }
         text-transform: uppercase;
       }
+      &__unit {
+        color: #d2232a;
+        font-size: 16px;
+        font-weight: 900;
+        line-height: 100%;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+        margin-bottom: 8px !important;
+      }
       &__headline {
         color: #d2232a;
         text-align: center;

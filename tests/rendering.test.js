@@ -87,7 +87,9 @@ describe("variant steps", () => {
     expect(badge.style.display).toBe("");
     expect(steps()).toHaveLength(2);
     expect(stepsText()).toBe("Step 1 of 2");
-    expect(steps().map((step) => step.querySelector(".cart__steps__step__title").innerHTML)).toEqual(["Choose your Creatine Monohydrate (1 of 2):", "Choose your Creatine Monohydrate (2 of 2):"]);
+    expect(steps().map((step) => step.querySelector(".cart__steps__step__title").innerHTML)).toEqual(["Choose your Creatine Monohydrate:", "Choose your Creatine Monohydrate:"]);
+    // The unit counter is its own line right under the title row.
+    expect(steps().map((step) => step.querySelector(".cart__steps__step__title-price-wrapper").nextElementSibling.innerHTML)).toEqual(["Step 1 of 2", "Step 2 of 2"]);
     expect(card.querySelector(".cart__product__old-price").innerHTML).toBe("$55.98");
     expect(card.querySelector(".cart__product__desc").innerHTML).toBe("2x Unflavored (Original)");
     expect(total()).toBe("$33.76");
@@ -140,6 +142,11 @@ describe("variant steps", () => {
     expect(href).toContain("products[0][id]=201&products[0][quantity]=1&products[0][product_recurring_id]=1&products[0][options][2926]=11951");
     expect(href).toContain("products[1][id]=201&products[1][quantity]=1&products[1][options][2926]=11952");
     expect(href).not.toMatch(/products\[1\]\[product_recurring_id\]/);
+  });
+
+  it("shows no unit counter when the quantity is 1", async () => {
+    await open({ products: [{ id: 201 }] });
+    expect($(".cart__steps__step__unit")).toBeFalsy();
   });
 
   it("renders a dropdown by default and image swatches for colors", async () => {

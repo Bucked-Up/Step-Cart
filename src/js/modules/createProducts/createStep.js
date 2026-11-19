@@ -112,12 +112,19 @@ const createStep = ({ product, stepsWrapper }) => {
 
     image.src = firstAvailableValue.images[0];
     image.alt = `${product.name} / ${firstAvailableValue.name}`;
-    title.innerHTML = qty > 1 ? `Choose your ${product.name} (${index + 1} of ${qty}):` : `Choose your ${product.name}:`;
+    title.innerHTML = `Choose your ${product.name}:`;
     button.innerHTML = "NEXT STEP";
 
     step.appendChild(imageWrapper);
     step.appendChild(productInfoWrapper);
     productInfoWrapper.appendChild(titlePriceWrapper);
+    // Which unit this step picks for, on its own line under the title.
+    if (qty > 1) {
+      const unitText = document.createElement("p");
+      unitText.classList.add("cart__steps__step__unit");
+      unitText.innerHTML = `Step ${index + 1} of ${qty}`;
+      productInfoWrapper.appendChild(unitText);
+    }
     imageWrapper.appendChild(image);
 
     let selectors, inputs, dropdown;
