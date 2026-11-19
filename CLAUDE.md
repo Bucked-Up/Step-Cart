@@ -40,7 +40,7 @@ Entry point `src/js/stepCart.js` orchestrates everything in a fixed sequence:
 3. `createProducts` — per product, dispatches to one of:
    - `handleProductWithSetVariant` when `configs.variant` is set (pre-selected variant, rendered as static),
    - `createStaticProduct` when `isStatic(product)` (no options or `type === "static"`),
-   - `createStep` otherwise — one wizard step per variant product, wired into the "Step X of N" navigation.
+   - `createStep` otherwise — one wizard step per unit of the product's `quantity` (each unit picks its own variant and is its own `unit`-tagged line in `data.js`; `handlePurchase` merges equal lines), wired into the "Step X of N" navigation.
    - `newPrice.affect` splits one static product into two cards (full-price remainder + discounted subset).
 4. On checkout, `handlePurchase` walks the current products, builds a `products[i][id]=…&products[i][quantity]=…&products[i][options][opt]=val` query string, adds coupon + `rl_anonymous_id` cookie + `source_url`, calls `sendVibeLead`, and redirects to `{country-domain}/cart/add?…&clear=true`. For a product with `recurring`, the delivery frequency (`product_recurring_id`) resolves from `recurring.period` first, then falls back to the checked `[name="{id}-recurring"]` radio — the same precedence used by `handleRecurringDescription`, so the radios are optional when `period` is set.
 

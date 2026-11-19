@@ -1,6 +1,8 @@
 import isDependent from "./isDepentent.js";
 
-const createTextSelector = ({ product, image }) => {
+const createTextSelector = ({ product, image, unit }) => {
+  // Units after the first suffix their radio names so each step is its own radio group.
+  const suffix = unit ? `-${unit}` : "";
   let hasChecked = false;
   const values = product.options[0].values;
   const inputs = [];
@@ -23,10 +25,10 @@ const createTextSelector = ({ product, image }) => {
     }
     mainText.innerHTML = value.name;
     label.classList.add("text-selector");
-    label.for = `${product.id}-${product.options[0].id}-${value.id}`;
-    input.id = `${product.id}-${product.options[0].id}-${value.id}`;
+    label.for = `${product.id}-${product.options[0].id}-${value.id}${suffix}`;
+    input.id = `${product.id}-${product.options[0].id}-${value.id}${suffix}`;
     input.value = value.id;
-    input.name = `${product.id}-${product.options[0].id}`;
+    input.name = `${product.id}-${product.options[0].id}${suffix}`;
     input.type = "radio";
     label.appendChild(input);
     label.appendChild(mainText);

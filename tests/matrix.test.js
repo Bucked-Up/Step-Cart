@@ -156,12 +156,14 @@ describe("quantity, totals and bonuses across configurations", () => {
 
 // A configured `quantity` must reach checkout whatever renders the product. newPrice is the
 // line total; a variant surcharge scales per unit on a step (static cards show list price only).
+// A step renders one selection per unit: "all" picks the surcharged flavor on every unit,
+// "first" picks it on unit 1 only, which splits the checkout into two lines.
 const BASE_201 = 27.99;
 const SURCHARGE_11952 = 2;
 describe("configured quantity across product kinds", () => {
   for (const kind of ["preset", "step"])
     for (const withNewPrice of [false, true])
-      for (const surcharged of kind === "step" ? [false, true] : [false])
+      for (const surcharged of kind === "step" ? [false, "all", "first"] : [false])
         for (const qty of quantities)
           it(`kind=${kind} · newPrice=${withNewPrice} · surcharge=${surcharged} · qty=${qty}`, async () => {
             const product = { id: 201, quantity: qty };
@@ -171,20 +173,31 @@ describe("configured quantity across product kinds", () => {
             addCartButton("btn");
             await stepCart({ products: [product] });
             document.querySelector("#btn").click();
-            if (surcharged) {
-              const input = [...document.querySelectorAll('.cart__steps__step input[type="radio"]')].find((el) => el.value === "11952");
+            const unitSteps = [...document.querySelectorAll(".cart__steps__step")];
+            expect(unitSteps).toHaveLength(kind === "step" ? qty : 0);
+            const pickedUnits = surcharged === "all" ? qty : surcharged === "first" ? 1 : 0;
+            unitSteps.slice(0, pickedUnits).forEach((step) => {
+              const input = [...step.querySelectorAll('input[type="radio"]')].find((el) => el.value === "11952");
               input.checked = true;
               input.dispatchEvent(new window.Event("change"));
-            }
+            });
 
-            const surcharge = surcharged ? SURCHARGE_11952 * qty : 0;
+            const surcharge = SURCHARGE_11952 * pickedUnits;
             const expectedTotal = withNewPrice ? 33.76 + surcharge : BASE_201 * qty + surcharge;
             expect(data.getTotalValue()).toBeCloseTo(expectedTotal, 2);
             expect(Number(quantity())).toBe(qty);
             const badge = cardFor(201).querySelector(".cart__product__quantity");
             expect(badge.style.display).toBe(qty > 1 ? "" : "none");
-            const choice = surcharged ? 11952 : 11951;
-            expect(checkoutParams(location).url.href).toContain(`products[0][id]=201&products[0][quantity]=${qty}&products[0][options][2926]=${choice}`);
+            const href = checkoutParams(location).url.href;
+            if (pickedUnits === 0 || pickedUnits === qty) {
+              const choice = pickedUnits ? 11952 : 11951;
+              expect(href).toContain(`products[0][id]=201&products[0][quantity]=${qty}&products[0][options][2926]=${choice}`);
+              expect(href).not.toContain("products[1]");
+            } else {
+              // Unit 1 moved to its own line; the untouched units stay merged.
+              expect(href).toContain(`products[0][id]=201&products[0][quantity]=${qty - 1}&products[0][options][2926]=11951`);
+              expect(href).toContain(`products[1][id]=201&products[1][quantity]=1&products[1][options][2926]=11952`);
+            }
           });
 
   it("ships the configured quantity for an isBonus variant card once unlocked", async () => {

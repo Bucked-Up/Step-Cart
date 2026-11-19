@@ -78,22 +78,68 @@ describe("variant steps", () => {
     expect(checkoutParams(location).url.href).toContain(`products[0][options][2926]=${next.value}`);
   });
 
-  it("ships the configured quantity for a step and keeps it across a variant change", async () => {
+  // The btn-3 tier of promo.buckedup.com/freecreatinesamples: two tubs, one flavor each.
+  it("renders one step per unit so each unit picks its own flavor", async () => {
     await open({ products: [{ id: 201, selector: "text", quantity: 2, newPrice: { value: "$33.76" } }] });
     const card = cardFor(201);
     const badge = card.querySelector(".cart__product__quantity");
     expect(badge.innerHTML).toBe("2");
     expect(badge.style.display).toBe("");
+    expect(steps()).toHaveLength(2);
+    expect(stepsText()).toBe("Step 1 of 2");
+    expect(steps().map((step) => step.querySelector(".cart__steps__step__title").innerHTML)).toEqual(["Choose your Creatine Monohydrate (1 of 2):", "Choose your Creatine Monohydrate (2 of 2):"]);
     expect(card.querySelector(".cart__product__old-price").innerHTML).toBe("$55.98");
+    expect(card.querySelector(".cart__product__desc").innerHTML).toBe("2x Unflavored (Original)");
     expect(total()).toBe("$33.76");
     expect(quantity()).toBe("2");
-    const next = selectorInputs().find((input) => input.value === "11952");
-    next.checked = true;
-    next.dispatchEvent(new window.Event("change"));
-    // The $2.00 surcharge applies to each unit; newPrice stays the line total.
-    expect(total()).toBe("$37.76");
+
+    const pick = (index, id) => {
+      const input = selectorInputs(index).find((el) => el.value === id);
+      input.checked = true;
+      input.dispatchEvent(new window.Event("change"));
+    };
+    pick(0, "11952");
+    // Each unit is its own radio group: unit 2 keeps its default.
+    expect(selectorInputs(1).find((el) => el.checked).value).toBe("11951");
+    // The $2.00 surcharge applies to the one surcharged unit; newPrice stays the line total.
+    expect(total()).toBe("$35.76");
+    expect(card.querySelector(".cart__product__new-price").innerHTML).toBe("$35.76");
+    expect(steps()[1].querySelector(".cart__steps__step__title-price-wrapper__new-price").innerHTML).toBe("$35.76");
     nextStep();
-    expect(checkoutParams(location).url.href).toContain("products[0][id]=201&products[0][quantity]=2&products[0][options][2926]=11952");
+    pick(1, "11953");
+    expect(total()).toBe("$37.76");
+    expect(card.querySelector(".cart__product__desc").innerHTML).toBe("Grape Apple (+$2.00)<br>Mango Pineapple (+$2.00)");
+    nextStep();
+    const href = checkoutParams(location).url.href;
+    expect(href).toContain("products[0][id]=201&products[0][quantity]=1&products[0][options][2926]=11952");
+    expect(href).toContain("products[1][id]=201&products[1][quantity]=1&products[1][options][2926]=11953");
+    expect(href).not.toContain("products[2]");
+  });
+
+  it("merges units that end on the same flavor into one checkout line", async () => {
+    await open({ products: [{ id: 201, quantity: 2 }] });
+    expect($$(".cart__dropdown-selector")).toHaveLength(2);
+    steps().forEach((_, index) => {
+      const input = selectorInputs(index).find((el) => el.value === "11954");
+      input.checked = true;
+      input.dispatchEvent(new window.Event("change"));
+    });
+    expect(cardFor(201).querySelector(".cart__product__desc").innerHTML).toBe("2x Blue Raspberry (+$2.00)");
+    expect(total()).toBe("$59.98");
+    const href = checkoutParams(location).url.href;
+    expect(href).toContain("products[0][id]=201&products[0][quantity]=2&products[0][options][2926]=11954");
+    expect(href).not.toContain("products[1]");
+  });
+
+  it("puts the recurring period on the first unit only", async () => {
+    await open({ products: [{ id: 201, selector: "text", quantity: 2, recurring: { percent: 10, period: 1 } }] });
+    const input = selectorInputs(1).find((el) => el.value === "11952");
+    input.checked = true;
+    input.dispatchEvent(new window.Event("change"));
+    const href = checkoutParams(location).url.href;
+    expect(href).toContain("products[0][id]=201&products[0][quantity]=1&products[0][product_recurring_id]=1&products[0][options][2926]=11951");
+    expect(href).toContain("products[1][id]=201&products[1][quantity]=1&products[1][options][2926]=11952");
+    expect(href).not.toMatch(/products\[1\]\[product_recurring_id\]/);
   });
 
   it("renders a dropdown by default and image swatches for colors", async () => {
@@ -109,6 +155,43 @@ describe("variant steps", () => {
 });
 
 describe("dependent variants", () => {
+  it("asks colour and size for each unit and ships one line per unit", async () => {
+    await open({ products: [{ id: 935, quantity: 2 }] });
+    expect(steps()).toHaveLength(2);
+    const pick = (index, wrapperIndex, id) => {
+      const input = [...steps()[index].querySelectorAll(".cart__steps__step__selectors-wrapper")[wrapperIndex].querySelectorAll("input")].find((el) => el.value === id);
+      input.checked = true;
+      input.dispatchEvent(new window.Event("change"));
+    };
+    pick(0, 0, "8036");
+    pick(0, 1, "8039");
+    nextStep();
+    // Unit 2 still has no size, so it blocks the step and ships nothing yet.
+    nextStep();
+    expect(stepsText()).toBe("Step 2 of 2");
+    expect(checkoutParams(location).url.href).not.toContain("products[1]");
+    pick(1, 1, "8037");
+    nextStep();
+    const href = checkoutParams(location).url.href;
+    expect(href).toContain("products[0][id]=935&products[0][quantity]=1&products[0][options][1754]=8036&products[0][options][1755]=8039");
+    expect(href).toContain("products[1][id]=935&products[1][quantity]=1&products[1][options][1754]=10454&products[1][options][1755]=8037");
+  });
+
+  it("drops a unit's line when a colour change unpicks its size", async () => {
+    await open({ products: [{ id: 935, quantity: 2 }] });
+    const pick = (index, wrapperIndex, id) => {
+      const input = [...steps()[index].querySelectorAll(".cart__steps__step__selectors-wrapper")[wrapperIndex].querySelectorAll("input")].find((el) => el.value === id);
+      input.checked = true;
+      input.dispatchEvent(new window.Event("change"));
+    };
+    pick(0, 1, "8040");
+    pick(1, 1, "8037");
+    expect(data.getProducts()).toHaveLength(2);
+    // [8032,8040] is out of stock, so black unpicks unit 1's size.
+    pick(0, 0, "8032");
+    expect(data.getProducts().map((line) => line.unit)).toEqual([1]);
+  });
+
   it("renders both option levels and blocks advancing until a size is picked", async () => {
     await open({ products: [{ id: 935 }] });
     const wrappers = $$(".cart__steps__step__selectors-wrapper");

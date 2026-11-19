@@ -1,4 +1,4 @@
-import { addRegularProduct, getProductsWrapper, getTotalValue, setTotalValue } from "../data.js";
+import { addRegularProduct, getProductsWrapper, getTotalValue, removeProduct, setTotalValue } from "../data.js";
 import getPrice from "../utils/getPrice.js";
 import createDropdownSelector from "./createDropdownSelector.js";
 import createImageColorSelector from "./createImageColorSelector.js";
@@ -6,213 +6,220 @@ import createProductCard from "./createProductCard.js";
 import createSizeSelectors from "./createSizeSelectors.js";
 import createTextSelector from "./createTextSelector.js";
 import handleRecurringDescription from "./handleRecurringDescription.js";
-import { setNewPrice, setOldPrice, updateVariantValue } from "./handleVariantValues.js";
 import isDependent from "./isDepentent.js";
 
-const createStep = ({ product, stepsWrapper, noSelection }) => {
+// A variant product renders one step per unit of its configured quantity, so each unit gets
+// its own selection (two tubs, two flavors). The units share one cart card and ship as
+// separate cart lines; handlePurchase merges units that end up with the same choice.
+const createStep = ({ product, stepsWrapper }) => {
+  const dependent = isDependent(product);
   const dependentOutOfStock = (value1, value2) => product.stock[Object.keys(product.stock).find((key) => key.includes(value1) && key.includes(value2))] <= 0;
-
-  const step = document.createElement("div");
-  const imageWrapper = document.createElement("div");
-  const productInfoWrapper = document.createElement("div");
-  const image = document.createElement("img");
-  const titlePriceWrapper = document.createElement("div");
-  const pricesWrapper = document.createElement("div");
-  const title = document.createElement("p");
-  const button = document.createElement("button");
-  const { card, image: cardImage, name, desc, oldPrice, newPrice, quantity } = createProductCard(product);
   const qty = product.configs.quantity || 1;
+
+  const { card, image: cardImage, name, desc, oldPrice, newPrice, quantity } = createProductCard(product);
   if (qty > 1) {
     quantity.innerHTML = qty;
     quantity.style.display = "";
   }
   getProductsWrapper().appendChild(card);
 
-  titlePriceWrapper.appendChild(title);
-  titlePriceWrapper.classList.add("cart__steps__step__title-price-wrapper");
-  const oldPriceTitle = document.createElement("p");
-  const newPriceTitle = document.createElement("p");
-  pricesWrapper.appendChild(oldPriceTitle);
-  pricesWrapper.appendChild(newPriceTitle);
-  titlePriceWrapper.appendChild(pricesWrapper);
-  pricesWrapper.classList.add("cart__steps__step__title-price-wrapper__prices-wrapper");
-  oldPriceTitle.classList.add("cart__steps__step__title-price-wrapper__old-price");
-  newPriceTitle.classList.add("cart__steps__step__title-price-wrapper__new-price");
+  const firstAvailableValue = dependent
+    ? product.options[0].values.find((value) => Object.keys(product.stock).some((key) => key.includes(value.id) && product.stock[key] > 0))
+    : product.options[0].values.find((value) => value.in_stock);
 
-  step.classList.add("cart__steps__step");
-  productInfoWrapper.classList.add("cart__steps__step__product-info-wrapper");
-  imageWrapper.classList.add("cart__steps__step__image-wrapper");
-  image.classList.add("cart__steps__step__image");
-  title.classList.add("cart__steps__step__title");
-  button.classList.add("cart__steps__step__button");
-  button.type = "button";
+  // newPrice.value is the price of the full line; each unit adds its own variant surcharge.
+  const basePart = product.configs.newPrice ? getPrice(product.configs.newPrice.value) : getPrice(product.price) * qty;
+  // A dependent unit is priced by its secondary value once one is picked.
+  const surchargeOf = (unit) => getPrice((unit.secondary || unit.primary).price);
+  const labelOf = (unit) => (unit.secondary ? `${unit.primary.name}<br>${unit.secondary.name}` : unit.primary.name);
+  const units = [];
+  const priceTitles = [];
+  let contribution = 0;
 
-  let firstAvailableValue;
-  let currentPrimaryValue;
-  let primaryInputs;
-  let secondaryInputs;
-  let secondarySelectorsWrapper;
+  const refresh = () => {
+    const surcharges = units.reduce((sum, unit) => sum + surchargeOf(unit), 0);
+    setTotalValue(getTotalValue() + basePart + surcharges - contribution);
+    contribution = basePart + surcharges;
 
-  if (product.configs.newPrice && product.configs.newPrice.value !== "FREE") setTotalValue(getTotalValue() + Number(product.configs.newPrice.value.split("$")[1]));
-  else if (!product.configs.newPrice) setTotalValue(getTotalValue() + getPrice(product.price) * qty);
-
-  if (isDependent(product)) {
-    const values = product.options[0].values;
-    firstAvailableValue = values.find((value) => Object.keys(product.stock).some((key) => key.includes(value.id) && product.stock[key] > 0));
-    currentPrimaryValue = firstAvailableValue;
-  } else {
-    firstAvailableValue = product.options[0].values.find((value) => value.in_stock);
-    addRegularProduct({ product, choice: `${product.options[0].id}-${firstAvailableValue.id}`, replace: true, quantity: qty });
-  }
-
-  cardImage.src = firstAvailableValue.images[0];
-  cardImage.alt = firstAvailableValue.name;
-  name.innerHTML = product.configs.name || product.name;
-  desc.innerHTML = firstAvailableValue.name;
-  handleRecurringDescription({ product, desc, value: firstAvailableValue });
-  if (product.configs.newPrice) {
-    setOldPrice(product, oldPrice, firstAvailableValue.price, qty);
-    setNewPrice(product, newPrice, firstAvailableValue.price, qty);
-    oldPriceTitle.innerHTML = oldPrice.innerHTML;
-    newPriceTitle.innerHTML = newPrice.innerHTML;
-  } else {
-    setOldPrice(product, newPrice, firstAvailableValue.price, qty);
-    newPriceTitle.innerHTML = newPrice.innerHTML;
-  }
-
-  image.src = firstAvailableValue.images[0];
-  image.alt = `${product.name} / ${firstAvailableValue.name}`;
-  title.innerHTML = `Choose your ${product.name}:`;
-  button.innerHTML = "NEXT STEP";
-
-  step.appendChild(imageWrapper);
-  step.appendChild(productInfoWrapper);
-  productInfoWrapper.appendChild(titlePriceWrapper);
-  imageWrapper.appendChild(image);
-
-  let selectors, inputs, dropdown;
-
-  switch (product.configs.selector) {
-    case "text":
-      [selectors, inputs] = createTextSelector({ product, image });
-      break;
-    case "images":
-    case "colors":
-      [selectors, inputs] = createImageColorSelector({ product, image });
-      break;
-    default:
-      if (isDependent(product)) [selectors, inputs] = createImageColorSelector({ product, image });
-      else [dropdown, inputs] = createDropdownSelector({ product, image });
-      break;
-  }
-  primaryInputs = inputs;
-  const selectorsWrapper = document.createElement("div");
-  selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
-  if (selectors)
-    selectors.forEach((selector) => {
-      selectorsWrapper.appendChild(selector);
-    });
-  else if (dropdown) {
-    inputs.find((input) => input.value == firstAvailableValue.id).checked = true;
-    selectorsWrapper.appendChild(dropdown);
-    selectorsWrapper.removeAttribute("class");
-  }
-  inputs.forEach((input) => {
-    input.addEventListener("change", () => {
-      const value = product.options[0].values.find((value) => value.id == input.value);
-      if (isDependent(product)) {
-        currentPrimaryValue = value;
-        secondaryInputs.forEach((input) => {
-          input.removeAttribute("disabled");
-          if (dependentOutOfStock(input.value, value.id)) {
-            input.setAttribute("disabled", "disabled");
-            if (input.checked) {
-              input.checked = false;
-              secondarySelectorsWrapper.setAttribute("invalid", "invalid");
-            }
-          }
-        });
-        const currentSecondaryInput = secondaryInputs.find((input) => input.checked);
-        if (currentSecondaryInput) {
-          addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}/${product.options[1].id}-${currentSecondaryInput.value}`, replace: true, quantity: qty });
-          cardImage.src = currentPrimaryValue.images[0];
-          cardImage.alt = currentPrimaryValue.name;
-          name.innerHTML = product.configs.name || product.name;
-          const value = product.options[1].values.find((value) => value.id == currentSecondaryInput.value);
-          desc.innerHTML = `${currentPrimaryValue.name}<br>${value.name}`;
-          handleRecurringDescription({ product, desc, value });
-        }
+    const oldText = `$${(getPrice(product.price) * qty + surcharges).toFixed(2)}`;
+    if (product.configs.newPrice) {
+      oldPrice.innerHTML = oldText;
+      newPrice.style = "";
+      if (surcharges === 0) {
+        newPrice.innerHTML = product.configs.newPrice.value;
+        if (product.configs.newPrice.value === "FREE") newPrice.style.color = "#D2232A";
       } else {
-        addRegularProduct({ product, choice: `${product.options[0].id}-${input.value}`, replace: true, quantity: qty });
-        updateVariantValue(product, value, qty);
-        if (product.configs.newPrice) {
-          setOldPrice(product, oldPrice, value.price, qty);
-          setNewPrice(product, newPrice, value.price, qty);
-          oldPriceTitle.innerHTML = oldPrice.innerHTML;
-          newPriceTitle.innerHTML = newPrice.innerHTML;
-        } else {
-          setOldPrice(product, newPrice, value.price, qty);
-          newPriceTitle.innerHTML = newPrice.innerHTML;
-        }
-        cardImage.src = value.images[0];
-        cardImage.alt = value.name;
-        name.innerHTML = product.configs.name || product.name;
-        desc.innerHTML = value.name;
-        handleRecurringDescription({ product, desc, value });
+        newPrice.innerHTML = `$${(surcharges + basePart).toFixed(2)}`;
       }
+    } else {
+      newPrice.innerHTML = oldText;
+    }
+    priceTitles.forEach(([oldTitle, newTitle]) => {
+      if (product.configs.newPrice) oldTitle.innerHTML = oldPrice.innerHTML;
+      newTitle.innerHTML = newPrice.innerHTML;
     });
-  });
-  productInfoWrapper.appendChild(selectorsWrapper);
 
-  if (isDependent(product)) {
-    const [selectors, inputs] = createSizeSelectors({ product });
-    secondaryInputs = inputs;
-    const selectorsWrapper = document.createElement("div");
-    secondarySelectorsWrapper = selectorsWrapper;
-    selectorsWrapper.setAttribute("invalid", "invalid");
-    selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
-    selectors.forEach((selector) => {
-      selectorsWrapper.appendChild(selector);
-    });
+    cardImage.src = units[0].primary.images[0];
+    cardImage.alt = units[0].primary.name;
+    name.innerHTML = product.configs.name || product.name;
+    // Equal choices read as one "2x Flavor" line instead of the same name twice.
+    const counts = new Map();
+    units.forEach((unit) => counts.set(labelOf(unit), (counts.get(labelOf(unit)) || 0) + 1));
+    desc.innerHTML = [...counts].map(([label, count]) => (count > 1 ? `${count}x ${label}` : label)).join("<br>");
+    handleRecurringDescription({ product, desc, value: units[0].secondary || units[0].primary });
+  };
+
+  const createUnitStep = (index) => {
+    const unit = { primary: firstAvailableValue, secondary: null };
+    units.push(unit);
+    const addLine = () => {
+      const choice = unit.secondary ? `${product.options[0].id}-${unit.primary.id}/${product.options[1].id}-${unit.secondary.id}` : `${product.options[0].id}-${unit.primary.id}`;
+      addRegularProduct({ product, choice, replace: true, unit: index });
+    };
+    // A dependent unit has no line until its secondary value is picked, and loses it again
+    // when a primary change unpicks an out-of-stock secondary.
+    const removeLine = () => removeProduct({ product, unit: index });
+    if (!dependent) addLine();
+
+    const step = document.createElement("div");
+    const imageWrapper = document.createElement("div");
+    const productInfoWrapper = document.createElement("div");
+    const image = document.createElement("img");
+    const titlePriceWrapper = document.createElement("div");
+    const pricesWrapper = document.createElement("div");
     const title = document.createElement("p");
-    title.innerHTML = product.options[1].name;
-    productInfoWrapper.appendChild(title);
-    title.classList.add("cart__steps__step__title");
-    title.classList.add("margin-bottom");
-    productInfoWrapper.appendChild(selectorsWrapper);
-    inputs.forEach((input) => {
-      if (dependentOutOfStock(input.value, firstAvailableValue.id)) {
-        input.setAttribute("disabled", "disabled");
-      }
+    const button = document.createElement("button");
+    const oldPriceTitle = document.createElement("p");
+    const newPriceTitle = document.createElement("p");
+    priceTitles.push([oldPriceTitle, newPriceTitle]);
 
+    titlePriceWrapper.appendChild(title);
+    titlePriceWrapper.classList.add("cart__steps__step__title-price-wrapper");
+    pricesWrapper.appendChild(oldPriceTitle);
+    pricesWrapper.appendChild(newPriceTitle);
+    titlePriceWrapper.appendChild(pricesWrapper);
+    pricesWrapper.classList.add("cart__steps__step__title-price-wrapper__prices-wrapper");
+    oldPriceTitle.classList.add("cart__steps__step__title-price-wrapper__old-price");
+    newPriceTitle.classList.add("cart__steps__step__title-price-wrapper__new-price");
+
+    step.classList.add("cart__steps__step");
+    productInfoWrapper.classList.add("cart__steps__step__product-info-wrapper");
+    imageWrapper.classList.add("cart__steps__step__image-wrapper");
+    image.classList.add("cart__steps__step__image");
+    title.classList.add("cart__steps__step__title");
+    button.classList.add("cart__steps__step__button");
+    button.type = "button";
+
+    image.src = firstAvailableValue.images[0];
+    image.alt = `${product.name} / ${firstAvailableValue.name}`;
+    title.innerHTML = qty > 1 ? `Choose your ${product.name} (${index + 1} of ${qty}):` : `Choose your ${product.name}:`;
+    button.innerHTML = "NEXT STEP";
+
+    step.appendChild(imageWrapper);
+    step.appendChild(productInfoWrapper);
+    productInfoWrapper.appendChild(titlePriceWrapper);
+    imageWrapper.appendChild(image);
+
+    let selectors, inputs, dropdown;
+    let secondaryInputs;
+    let secondarySelectorsWrapper;
+
+    switch (product.configs.selector) {
+      case "text":
+        [selectors, inputs] = createTextSelector({ product, image, unit: index });
+        break;
+      case "images":
+      case "colors":
+        [selectors, inputs] = createImageColorSelector({ product, image, unit: index });
+        break;
+      default:
+        if (dependent) [selectors, inputs] = createImageColorSelector({ product, image, unit: index });
+        else [dropdown, inputs] = createDropdownSelector({ product, image, unit: index });
+        break;
+    }
+    const selectorsWrapper = document.createElement("div");
+    selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
+    if (selectors)
+      selectors.forEach((selector) => {
+        selectorsWrapper.appendChild(selector);
+      });
+    else if (dropdown) {
+      inputs.find((input) => input.value == firstAvailableValue.id).checked = true;
+      selectorsWrapper.appendChild(dropdown);
+      selectorsWrapper.removeAttribute("class");
+    }
+    inputs.forEach((input) => {
       input.addEventListener("change", () => {
-        const value = product.options[1].values.find((value) => value.id == input.value);
-        updateVariantValue(product, value, qty);
-        if (product.configs.newPrice) {
-          setOldPrice(product, oldPrice, value.price, qty);
-          setNewPrice(product, newPrice, value.price, qty);
-          oldPriceTitle.innerHTML = oldPrice.innerHTML;
-          newPriceTitle.innerHTML = newPrice.innerHTML;
+        unit.primary = product.options[0].values.find((value) => value.id == input.value);
+        if (dependent) {
+          secondaryInputs.forEach((input) => {
+            input.removeAttribute("disabled");
+            if (dependentOutOfStock(input.value, unit.primary.id)) {
+              input.setAttribute("disabled", "disabled");
+              if (input.checked) {
+                input.checked = false;
+                unit.secondary = null;
+                secondarySelectorsWrapper.setAttribute("invalid", "invalid");
+                removeLine();
+              }
+            }
+          });
+          if (unit.secondary) addLine();
         } else {
-          setOldPrice(product, newPrice, value.price, qty);
-          newPriceTitle.innerHTML = newPrice.innerHTML;
+          addLine();
         }
-        selectorsWrapper.removeAttribute("invalid");
-        selectorsWrapper.classList.remove("invalid");
-        addRegularProduct({ product, choice: `${product.options[0].id}-${primaryInputs.find((input) => input.checked).value}/${product.options[1].id}-${input.value}`, replace: true, quantity: qty });
-        cardImage.src = currentPrimaryValue.images[0];
-        cardImage.alt = currentPrimaryValue.name;
-        name.innerHTML = product.configs.name || product.name;
-        desc.innerHTML = `${currentPrimaryValue.name}<br>${value.name}`;
-        handleRecurringDescription({ product, desc, value });
+        refresh();
       });
     });
+    productInfoWrapper.appendChild(selectorsWrapper);
+
+    if (dependent) {
+      const [selectors, inputs] = createSizeSelectors({ product, unit: index });
+      secondaryInputs = inputs;
+      const selectorsWrapper = document.createElement("div");
+      secondarySelectorsWrapper = selectorsWrapper;
+      selectorsWrapper.setAttribute("invalid", "invalid");
+      selectorsWrapper.classList.add("cart__steps__step__selectors-wrapper");
+      selectors.forEach((selector) => {
+        selectorsWrapper.appendChild(selector);
+      });
+      const title = document.createElement("p");
+      title.innerHTML = product.options[1].name;
+      productInfoWrapper.appendChild(title);
+      title.classList.add("cart__steps__step__title");
+      title.classList.add("margin-bottom");
+      productInfoWrapper.appendChild(selectorsWrapper);
+      inputs.forEach((input) => {
+        if (dependentOutOfStock(input.value, firstAvailableValue.id)) {
+          input.setAttribute("disabled", "disabled");
+        }
+
+        input.addEventListener("change", () => {
+          unit.secondary = product.options[1].values.find((value) => value.id == input.value);
+          selectorsWrapper.removeAttribute("invalid");
+          selectorsWrapper.classList.remove("invalid");
+          addLine();
+          refresh();
+        });
+      });
+    }
+
+    if (!stepsWrapper.hasAttribute("inline-products")) step.appendChild(button);
+    stepsWrapper.appendChild(step);
+
+    return [step, button];
+  };
+
+  const steps = [];
+  const buttons = [];
+  for (let index = 0; index < qty; index++) {
+    const [step, button] = createUnitStep(index);
+    steps.push(step);
+    buttons.push(button);
   }
+  refresh();
 
-  if (!stepsWrapper.hasAttribute("inline-products")) step.appendChild(button);
-  stepsWrapper.appendChild(step);
-
-  return [step, button];
+  return { steps, buttons };
 };
 
 export default createStep;

@@ -1,4 +1,6 @@
-const createDropdownSelector = ({ product, image }) => {
+const createDropdownSelector = ({ product, image, unit }) => {
+  // Units after the first suffix their radio names so each step is its own radio group.
+  const suffix = unit ? `-${unit}` : "";
   const dropdown = document.createElement("div");
   dropdown.classList.add("cart__dropdown-selector");
   const arrowIcon = new DOMParser().parseFromString('<svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.833008 0.83252L5.82911 5.82862L10.8252 0.83252" stroke="#99A1AF" stroke-width="1.66537" stroke-linecap="round" stroke-linejoin="round"/></svg>', "image/svg+xml").documentElement;
@@ -29,9 +31,9 @@ const createDropdownSelector = ({ product, image }) => {
     const input = document.createElement("input");
     const text = document.createElement("span");
     input.type = "radio";
-    input.name = `${product.id}-${product.options[0].id}`;
+    input.name = `${product.id}-${product.options[0].id}${suffix}`;
     input.value = value.id;
-    label.for = `${product.id}-${product.options[0].id}`;
+    label.for = `${product.id}-${product.options[0].id}${suffix}`;
     label.appendChild(input);
     text.innerHTML = value.name;
     variantsWrapper.appendChild(label);

@@ -13,7 +13,9 @@ const getInputText = ({ name }) => {
   }
 };
 
-const createSizeSelectors = ({ product }) => {
+const createSizeSelectors = ({ product, unit }) => {
+  // Units after the first suffix their radio names so each step is its own radio group.
+  const suffix = unit ? `-${unit}` : "";
   const values = product.options[1].values;
   const inputs = [];
   const labels = [];
@@ -27,10 +29,10 @@ const createSizeSelectors = ({ product }) => {
     priceUpText.innerHTML = "(" + priceUpTextText?.trim();
     priceUpText.classList.add("price-up-text");
     label.classList.add("sizes-selector");
-    label.for = `${product.id}-${product.options[1].id}-${value.id}`;
-    input.id = `${product.id}-${product.options[1].id}-${value.id}`;
+    label.for = `${product.id}-${product.options[1].id}-${value.id}${suffix}`;
+    input.id = `${product.id}-${product.options[1].id}-${value.id}${suffix}`;
     input.value = value.id;
-    input.name = `${product.id}-${product.options[1].id}`;
+    input.name = `${product.id}-${product.options[1].id}${suffix}`;
     input.type = "radio";
     label.appendChild(input);
     label.appendChild(mainText);

@@ -115,9 +115,9 @@ const createProducts = ({ stepsWrapper, stepsText, stepsBack, backToSteps, isBum
     } else if (isBump) {
       wrapper.appendChild(createRegularProduct({ product, isBump, progress: bumpProgress }).card);
     } else {
-      const [step, button] = createStep({ product, stepsWrapper });
-      steps.push(step);
-      stepButtons.push(button);
+      const { steps: unitSteps, buttons } = createStep({ product, stepsWrapper });
+      steps.push(...unitSteps);
+      stepButtons.push(...buttons);
       backToSteps.classList.add("active");
       backToSteps.addEventListener("click", () => stepsWrapper.classList.add("active"));
     }

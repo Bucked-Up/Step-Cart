@@ -67,7 +67,9 @@ const getColors = (name) => {
   return [finalPrimary, finalSecondary];
 };
 
-const createImageColorSelector = ({ product, image }) => {
+const createImageColorSelector = ({ product, image, unit }) => {
+  // Units after the first suffix their radio names so each step is its own radio group.
+  const suffix = unit ? `-${unit}` : "";
   let hasChecked = false;
   const selectors = [];
   const inputs = [];
@@ -75,10 +77,10 @@ const createImageColorSelector = ({ product, image }) => {
     const label = document.createElement("label");
     const input = document.createElement("input");
     label.classList.add("color-image-selector");
-    label.for = `${product.id}-${product.options[0].id}-${value.id}`;
-    input.id = `${product.id}-${product.options[0].id}-${value.id}`;
+    label.for = `${product.id}-${product.options[0].id}-${value.id}${suffix}`;
+    input.id = `${product.id}-${product.options[0].id}-${value.id}${suffix}`;
     input.value = value.id;
-    input.name = `${product.id}-${product.options[0].id}`;
+    input.name = `${product.id}-${product.options[0].id}${suffix}`;
     input.type = "radio";
     if ((!isDependent(product) && !value.in_stock) || (isDependent(product) && Object.keys(product.stock).filter(key=>key.includes(value.id)).every(key=>product.stock[key] <= 0))) input.setAttribute("disabled", "disabled");
     else if (!hasChecked) {

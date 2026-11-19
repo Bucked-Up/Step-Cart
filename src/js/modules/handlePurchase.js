@@ -26,9 +26,19 @@ const handlePurchase = ({ country, urlParams }) => {
     }
     i++;
   };
+  // Units of a variant step are separate lines; units that share a choice ship as one line.
+  const lines = [];
   products.forEach((product) => {
+    const same = lines.find((line) => line.id === product.id && line.type === product.type && line.choice === product.choice);
+    if (same) same.quantity += product.quantity;
+    else lines.push({ ...product });
+  });
+  // Only the first unit of a product is the recurring one, whatever the line split.
+  const recurringIds = new Set();
+  lines.forEach((product) => {
     const recurring = getProductConfigs(product.id)?.recurring;
-    if (recurring) {
+    if (recurring && !recurringIds.has(product.id)) {
+      recurringIds.add(product.id);
       const selectedValue =
         recurring.period ??
         document.querySelector(`[name="${product.id}-recurring"]:checked`)?.value;

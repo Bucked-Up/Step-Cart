@@ -63,15 +63,17 @@ const setGlobalQuantity = (quantity) => {
 };
 const getGlobalQuantity = () => globalQuantity;
 const addStaticProduct = ({ product, quantity = 1 }) => products.push({ id: product.id, type: "static", quantity });
-const removeProduct = ({ product }) => (products = products.filter((el) => el.id !== product.id));
+// `unit` scopes a line to one unit of a variant step (see createStep); without it, every
+// line of the product is affected.
+const removeProduct = ({ product, unit }) => (products = products.filter((el) => el.id !== product.id || (unit !== undefined && el.unit !== unit)));
 const setProductQuantity = ({ id, quantity }) => {
   const entry = products.find((el) => el.id === id);
   if (entry) entry.quantity = quantity;
 };
-const addRegularProduct = ({ product, choice, replace, quantity = 1 }) => {
+const addRegularProduct = ({ product, choice, replace, quantity = 1, unit }) => {
   if (replace) {
-    products = products.filter((el) => el.id !== product.id);
-    products.push({ id: product.id, choice, quantity, type: "regular" });
+    removeProduct({ product, unit });
+    products.push({ id: product.id, choice, quantity, type: "regular", unit });
   } else {
     const currentProduct = products.find((el) => el.id === product.id && el.choice === choice);
     if (currentProduct) {

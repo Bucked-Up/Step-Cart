@@ -35,7 +35,7 @@ Array of product configurations.
 | `id` | number | Product ID (required) |
 | `newPrice` | object | Override price with `{ value: "$29.99" }` or `{ value: "FREE" }` |
 | `newPrice.affect` | number | For quantity discounts (e.g., buy 3, pay for 2) |
-| `quantity` | number | Default quantity to add (default: 1). Applies to every product kind: static cards, a pre-selected `variant`, variant steps and `isBonus` variant cards. `newPrice.value` is the price of the full line, not of one unit |
+| `quantity` | number | Default quantity to add (default: 1). Applies to every product kind: static cards, a pre-selected `variant`, variant steps and `isBonus` variant cards. `newPrice.value` is the price of the full line, not of one unit. On a variant step, each unit gets its own step ("Choose your X (1 of 2)"), so the shopper picks a variant per unit; units with the same pick ship as one checkout line. A variant surcharge applies per unit |
 | `name` | string | Custom product name display |
 | `desc` | string | Custom product description |
 | `selector` | string | Variant UI: `"text"`, `"images"`, or `"colors"`. Omit for the default (dropdown, or image-color when a variant depends on another selection) |
