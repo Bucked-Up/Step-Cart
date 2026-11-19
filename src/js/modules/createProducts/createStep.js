@@ -112,7 +112,7 @@ const createStep = ({ product, stepsWrapper }) => {
 
     image.src = firstAvailableValue.images[0];
     image.alt = `${product.name} / ${firstAvailableValue.name}`;
-    title.innerHTML = `Choose your ${product.name}:`;
+    title.innerHTML = `Choose your ${product.configs.name || product.name}:`;
     button.innerHTML = "NEXT STEP";
 
     step.appendChild(imageWrapper);

@@ -78,6 +78,12 @@ describe("variant steps", () => {
     expect(checkoutParams(location).url.href).toContain(`products[0][options][2926]=${next.value}`);
   });
 
+  it("uses the configured name in the step title and on the card", async () => {
+    await open({ products: [{ id: 201, selector: "text", quantity: 2, name: "Creatine" }] });
+    expect(steps().map((step) => step.querySelector(".cart__steps__step__title").innerHTML)).toEqual(["Choose your Creatine:", "Choose your Creatine:"]);
+    expect(cardFor(201).querySelector(".cart__product__name").innerHTML).toBe("Creatine");
+  });
+
   // The btn-3 tier of promo.buckedup.com/freecreatinesamples: two tubs, one flavor each.
   it("renders one step per unit so each unit picks its own flavor", async () => {
     await open({ products: [{ id: 201, selector: "text", quantity: 2, newPrice: { value: "$33.76" } }] });

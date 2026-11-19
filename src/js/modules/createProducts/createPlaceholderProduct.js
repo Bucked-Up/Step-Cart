@@ -3,7 +3,7 @@ const createPlaceholderProduct = ({ product }) => {
   wrapper.classList.add("cart__placeholder-product");
   wrapper.innerHTML = `
     <div class="cart__steps__step__title-price-wrapper">
-      <p class="cart__steps__step__title">${product.name}</p>
+      <p class="cart__steps__step__title">${product.configs?.name || product.name}</p>
       <div class="cart__steps__step__title-price-wrapper__prices-wrapper">
         <p class="cart__steps__step__title-price-wrapper__old-price">${product.configs?.newPrice?.value ? product.price : ""}</p>
         <p class="cart__steps__step__title-price-wrapper__new-price">${product.configs?.newPrice?.value ? product.configs?.newPrice?.value : product.price}</p>
